@@ -1,2 +1,4 @@
 # VideoStreaming
 video streaming
+VideoStreaming是android 手机端项目
+UDPServer是windows上服务器端项目。
