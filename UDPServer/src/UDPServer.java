@@ -52,7 +52,7 @@ public class UDPServer {
                 }
                 if(UDPUtils.isEqualsByteArray(UDPUtils.fileInfo, buf, UDPUtils.fileInfo.length)){
                 	//get the file name
-                	System.out.println("get buf: " + buf.toString());
+                	System.out.println("get buf: " + new String(buf));
                 	fileName = UDPUtils.getFileName(buf, UDPUtils.fileInfo.length);
                 	System.out.println("get file name : " + fileName);
                 	sendDpk.setData(UDPUtils.successData, 0, UDPUtils.successData.length);

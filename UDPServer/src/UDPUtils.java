@@ -76,12 +76,15 @@ public class UDPUtils {
     /*get the file name from buf*/
     public static String getFileName(byte[] buf, int begin){
     	String res = "";
-    	
-    	if(buf.length >= begin)
+    	System.out.println("bgin " + begin);
+    	byte[] right = new byte[UDPUtils.BUFFER_SIZE];
+    	if(buf.length <= begin)
     		return res;
     	for(int i = begin; i < buf.length; i++){
-    		res += (new Byte(buf[i])).toString();
-    	}
+    		right[i-begin] = buf[i];
+    	}    	
+    	res = new String(right).trim();//去掉空格，所以，文件名不要有空格
+    	System.out.println(res.length());
     	return res;
     }
 }  
