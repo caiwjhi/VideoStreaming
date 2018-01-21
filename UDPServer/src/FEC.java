@@ -53,7 +53,7 @@ public class FEC {
 		byte[][] D = new byte[5][1];
 		for (int i = 0; i < 5; i++){
 			D[i][0] = (byte) (100+i);
-			if (i%2==0) {
+			if (i % 2 == 0) {
 				D[i][0] = (byte) (0-i);
 			}
 		}
