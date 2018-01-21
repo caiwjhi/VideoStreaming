@@ -7,9 +7,11 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -45,7 +47,7 @@ public class MainActivity extends Activity {
     private int serverPort=8889;
     /*是否选择文件*/
     private boolean selectedFile = false;
-    private File fileSelected = null;
+    private String filePath = "";
     private Button myBtn01, myBtn02;
     private TextView textShow;
     private String fileName;
@@ -57,7 +59,7 @@ public class MainActivity extends Activity {
 		myBtn01=(Button)findViewById(R.id.button1);
 		myBtn02 = (Button)findViewById(R.id.button2);
 		Log.i("wenjing", "onCreate!!!");
-		
+		Log.v("", "test on create///");
 		textShow =(TextView)findViewById(R.id.text);
 		//开始选择文件
         myBtn01.setOnClickListener(new OnClickListener() {
@@ -65,7 +67,7 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				Log.i("wenjing", "click button1!!!");
-				textShow.setText("on click button");
+				//textShow.setText("on click button");
 				// TODO Auto-generated method stub
 				Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 				intent.setType("video/*;image/*");
@@ -83,10 +85,11 @@ public class MainActivity extends Activity {
 				// TODO Auto-generated method stub
 				Toast.makeText(MainActivity.this, "开始传输视频", Toast.LENGTH_SHORT).show();
 				myBtn01.setEnabled(false);
-				//Thread th = new UdpSendCommondThread("file name mark " + fileName);
-				//th.start();
+				UdpSendCommondThread th = new UdpSendCommondThread("file name mark " + fileName);
+				new Thread(th).start();
 				//不用线程，直接普通函数来发送
-				UdpSendCommond("file name mark " + fileName);
+				//UdpSendCommond("file name mark " + fileName);
+				//UdpSendFile();
 			}
 		});
         
@@ -94,7 +97,7 @@ public class MainActivity extends Activity {
 	//回调方法，从第二个页面回来的时候会执行这个方法
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
     	Log.v("wenjing", "on activity result!!!");
-    	textShow.setText("on activity result!!!");
+    	//textShow.setText("on activity result!!!");
 		if(resultCode == Activity.RESULT_OK && requestCode == REC_REQUESTCODE){
 			Uri uri = intent.getData();
 			String string = uri.toString();
@@ -106,16 +109,16 @@ public class MainActivity extends Activity {
 			if(Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {//4.4以后
 				path = getPath(this, uri);
 				//textShow.setText(path);
-				Toast.makeText(this,path,Toast.LENGTH_SHORT).show();
+				//Toast.makeText(this,path,Toast.LENGTH_SHORT).show();
 			}else {//4.4以下下系统调用方法
 				path = getRealPathFromURI(uri);
 				//textShow.setText(path);
-				Toast.makeText(MainActivity.this, path+"222222", Toast.LENGTH_SHORT).show();
+				//Toast.makeText(MainActivity.this, path+"222222", Toast.LENGTH_SHORT).show();
 			}
 			file = new File(path);
 			if(file.exists()){
 				selectedFile = true;
-            	fileSelected = file;
+            	filePath = path;
             	//fileName = path.split("/")[-1];
             	fileName = path.substring(path.lastIndexOf('/')+1);
             	textShow.setText("selected file: " + fileName);
@@ -125,7 +128,7 @@ public class MainActivity extends Activity {
 				Toast.makeText(MainActivity.this, "file not exist", Toast.LENGTH_SHORT).show();
 			}
             //System.out.println("get file : " + fileSelected);
-            Log.i("alertdialog","get file : " + fileSelected); 
+            Log.i("alertdialog","get file : " + filePath); 
                // i(TAG, "onActivityResult" + file.getAbsolutePath());
             //textShow.setText("selected file11:" + Environment.getExternalStorageDirectory() + "\n" + string +"\n" + Environment.getDataDirectory());
 		}else{
@@ -350,26 +353,32 @@ public class MainActivity extends Activity {
         }
         public void run(){
     		//实例化Socket  
-        	textShow.setText("run...");
+        	//textShow.setText("run...");
             try {
+            	Log.i("wenjing", "in udp send ..");
             	//Toast.makeText(MainActivity.this, commond, Toast.LENGTH_SHORT).show();
     			byte[] data = commond.getBytes();
     			//创建数据报
     	        DatagramPacket packet = new DatagramPacket(data, data.length, InetAddress.getByName(serverUrl), serverPort);//发送报文到指定地址
     	        //创建DatagramSocket，实现数据发送和接收
-    	        DatagramSocket socket = new DatagramSocket();
+    	        DatagramSocket socket = new DatagramSocket(46797);//this port ???
     	        //向服务器端发送数据报
     	        socket.send(packet);
-    	        Toast.makeText(MainActivity.this, "just after send commond", Toast.LENGTH_SHORT).show();
+    	        //Toast.makeText(MainActivity.this, "just after send commond", Toast.LENGTH_SHORT).show();
     	        //接收服务器响应数据
+    	        Log.i("wenjing", "after send ..");
     	        byte[] data2 = new byte[1024];
     	        DatagramPacket packet2 = new DatagramPacket(data2, data2.length);
     	        socket.receive(packet2);
-    	        Toast.makeText(MainActivity.this, "after receive", Toast.LENGTH_SHORT).show();
+    	        Log.i("wenjing", "after receive...");
+    	        //Toast.makeText(MainActivity.this, "after receive", Toast.LENGTH_SHORT).show();
     	        String info = new String(data2, 0, packet2.getLength());
     	        System.out.println("我是客户端，服务器说："+info);
-    	        textShow.setText("发送命令后，服务器端回复：" + info);
+    	        //textShow.setText("发送命令后，服务器端回复：" + info);
+    	        Log.i("wenjing", "发送命令后，服务器端回复22：" + info);
     	        socket.close();
+    	        Log.i("wenjing", "before udp send file in this thread");
+    	        UdpSendFile();
     		} catch (UnknownHostException e) {
     			Log.e("e", "exception");
     		} catch (IOException e) {
@@ -388,17 +397,17 @@ public class MainActivity extends Activity {
 	        
 	        //创建DatagramSocket，实现数据发送和接收
 	        DatagramSocket socket = new DatagramSocket();
-	        textShow.setText("run...just before send");
+	       // textShow.setText("run...just before send");
 	        //向服务器端发送数据报
 	        socket.send(packet);
-	        Toast.makeText(MainActivity.this, "just after send commond", Toast.LENGTH_SHORT).show();
+	      //  Toast.makeText(MainActivity.this, "just after send commond", Toast.LENGTH_SHORT).show();
 	        //接收服务器响应数据
 	        byte[] data2 = new byte[1024];
 	        DatagramPacket packet2 = new DatagramPacket(data2, data2.length);
 	        socket.receive(packet2);
-	        Toast.makeText(MainActivity.this, "after receive", Toast.LENGTH_SHORT).show();
+	      //  Toast.makeText(MainActivity.this, "after receive", Toast.LENGTH_SHORT).show();
 	        String info = new String(data2, 0, packet2.getLength());
-	        System.out.println("我是客户端，服务器说："+info);
+	        //System.out.println("我是客户端，服务器说："+info);
 	       // textShow.setText("发送命令后，服务器端回复：" + info);
 	        socket.close();
 		} catch (UnknownHostException e) {
@@ -408,5 +417,80 @@ public class MainActivity extends Activity {
 		}  
 	
     }
+    
+    public void UdpSendFile(){
+    	long startTime = System.currentTimeMillis();
+    	//textShow.setText("in send file fun..");
+        byte[] buf = new byte[UDPUtils.BUFFER_SIZE];
+        byte[] receiveBuf = new byte[1];
+        Log.i("wenjing", "in send file....");
+        RandomAccessFile accessFile = null;
+        DatagramPacket dpk = null;
+        DatagramSocket dsk = null;
+        DatagramPacket receiveDpk = null;//to receive data
+        int readSize = -1;
+        try {
+            accessFile = new RandomAccessFile(filePath,"r");
+//            dpk = new DatagramPacket(buf, buf.length,new InetSocketAddress(InetAddress.getByName("localhost"), UDPUtils.PORT + 1));
+            dpk = new DatagramPacket(buf, buf.length,new InetSocketAddress(InetAddress.getByName(serverUrl), serverPort));
+            dsk = new DatagramSocket(46797);//client listening port
+            receiveDpk = new DatagramPacket(receiveBuf, receiveBuf.length);
+            int sendCount = 0;
+            while((readSize = accessFile.read(buf,0,buf.length)) != -1){
+                System.out.println("readSize:"+readSize);
+                dpk.setData(buf, 0, readSize);
+                dsk.send(dpk);
+                // wait server response
+                {
+                    while(true){
+                        receiveDpk.setData(receiveBuf, 0, receiveBuf.length);
+                        dsk.receive(receiveDpk);
 
+                        // confirm server receive
+                        if(!UDPUtils.isEqualsByteArray(UDPUtils.successData,receiveBuf,dpk.getLength())){
+                            System.out.println("resend ...");
+                            //textShow.setText("resend ...");
+                            dpk.setData(buf, 0, readSize);
+                            dsk.send(dpk);
+                        }else
+                            break;
+                    }
+                }
+
+                System.out.println("send count of "+(++sendCount)+"!");
+               // textShow.setText("send count of "+(++sendCount)+"!");
+            }
+            Toast.makeText(MainActivity.this, "finish send this file", Toast.LENGTH_SHORT).show();
+         // send exit wait server response
+            /*while(true){
+                System.out.println("client send exit message ....");
+                dpk.setData(UDPUtils.exitData,0,UDPUtils.exitData.length);
+                dsk.send(dpk);
+
+                receiveDpk.setData(receiveBuf,0,receiveBuf.length);
+                dsk.receive(receiveDpk);
+                // byte[] receiveData = dpk.getData();
+                if(!UDPUtils.isEqualsByteArray(UDPUtils.exitData, receiveBuf, dpk.getLength())){
+                    System.out.println("client Resend exit message ....");
+                    dsk.send(dpk);
+                }else
+                    break;
+            }*/
+        }catch (Exception e) {
+            e.printStackTrace();
+        } finally{
+            try {
+                if(accessFile != null)
+                    accessFile.close();
+                if(dsk != null)
+                    dsk.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        long endTime = System.currentTimeMillis();
+        System.out.println("time:"+(endTime - startTime));
+    }
+    
 }
