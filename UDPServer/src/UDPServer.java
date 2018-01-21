@@ -55,6 +55,7 @@ public class UDPServer {
                 	System.out.println("get buf: " + new String(buf));
                 	fileName = UDPUtils.getFileName(buf, UDPUtils.fileInfo.length);
                 	System.out.println("get file name : " + fileName);
+                	System.out.println("client ip and port: " + receiveAddr + " " + receivePort);
                 	sendDpk.setData(UDPUtils.successData, 0, UDPUtils.successData.length);
                 	dsk.send(sendDpk);
                 	bos = new BufferedOutputStream(new FileOutputStream(SAVE_FILE_DIR + fileName)); //更新文件名
@@ -63,6 +64,7 @@ public class UDPServer {
                     dsk.receive(receiveDpk); 
                 	continue;
                 }
+                System.out.println("receive file content..");
                 //otherwise, get the file content  
                 bos.write(buf, 0, readSize);  
                 if(++flushSize % 1000 == 0){   
