@@ -73,9 +73,18 @@ public class UDPUtils {
         return flag;  
     }  
     
-    /*get the file name from buf*/
+    public static boolean hasMark(byte[] mark, byte[] buf) {
+    	String bufStr = new String(buf);
+    	String markStr = new String(mark);
+    	if(bufStr.contains(markStr))
+    		return true;
+    	else
+    		return false;
+	}
+    
+    /*get the file name from buf；仅用于处理收到的commond包，不用于处理文件内容*/
     public static String getFileName(byte[] buf, int begin){
-    	String res = "";
+    	/*String res = "";
     	System.out.println("bgin " + begin);
     	byte[] right = new byte[UDPUtils.BUFFER_SIZE];
     	if(buf.length <= begin)
@@ -85,6 +94,24 @@ public class UDPUtils {
     	}    	
     	res = new String(right).trim();//去掉空格，所以，文件名不要有空格
     	System.out.println(res.length());
-    	return res;
+    	return res;*/
+    	String string = new String(buf).trim();
+    	String[] strings = string.split("  ");
+    	return strings[3];
     }
+    //根据收到的buf计算文件大小，返回int值，单位是Byte,字节，仅用于处理收到的commond包，不用于处理文件内容
+    public static int getFileSize(byte[] buf){
+    	String string = new String(buf).trim();
+    	System.out.println("string len " + string + " " +string.length());
+    	String[] strings = string.split("  ");
+    	return Integer.valueOf(strings[1]);
+    }
+    //得到buf的编号，目前仅用于处理commond数据buf
+    public static byte[] getFileNums(byte[] buf){
+    	byte[] ans = new byte[2];
+    	ans[0] = buf[0];
+    	ans[1] = buf[1];
+    	return ans;
+    }
+    
 }  

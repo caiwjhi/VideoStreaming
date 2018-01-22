@@ -18,6 +18,7 @@ public class UDPServer {
       
     private static final String SAVE_FILE_DIR = "D:/wenjing/teachingClass/saveFiles/";  
     private static String fileName = "default.mkv";  
+    private static int fileSize = 0;
     public static void main(String[] args) {  
     	System.out.println("Streaming server..."); 
         byte[] buf = new byte[UDPUtils.BUFFER_SIZE];  
@@ -50,12 +51,15 @@ public class UDPServer {
                     dsk.send(sendDpk);  
                     break;  
                 }
-                if(UDPUtils.isEqualsByteArray(UDPUtils.fileInfo, buf, UDPUtils.fileInfo.length)){
+                if(UDPUtils.hasMark(UDPUtils.fileInfo, buf)){
                 	//get the file name
                 	System.out.println("get buf: " + new String(buf));
                 	fileName = UDPUtils.getFileName(buf, UDPUtils.fileInfo.length);
-                	bos = new BufferedOutputStream(new FileOutputStream(SAVE_FILE_DIR + fileName)); //更新文件名
                 	System.out.println("get file name : " + fileName);
+                	fileSize = UDPUtils.getFileSize(buf);
+                	System.out.println("file size: " + fileSize);
+                	System.out.println("nums " + new String(UDPUtils.getFileNums(buf)));
+                	bos = new BufferedOutputStream(new FileOutputStream(SAVE_FILE_DIR + fileName)); //更新文件名
                 	System.out.println("client ip and port: " + receiveAddr + " " + receivePort);
                 	sendDpk.setData(UDPUtils.successData, 0, UDPUtils.successData.length);
                 	dsk.send(sendDpk);
