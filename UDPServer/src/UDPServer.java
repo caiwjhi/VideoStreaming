@@ -16,32 +16,32 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  */  
 public class UDPServer {  
       
-    private static final String SAVE_FILE_DIR = "D:/wenjing/teachingClass/saveFiles/";  
+//    private static final String SAVE_FILE_DIR = "D:/wenjing/teachingClass/saveFiles/";  
     private static String fileName = "default.mkv";  
+    private static FileOutput output;
     private static int fileSize = 0;
+    
     public static void main(String[] args) {  
-    	System.out.println("Streaming server..."); 
+    		System.out.println("Streaming server..."); 
         byte[] buf = new byte[UDPUtils.BUFFER_SIZE];  
-         
-        DatagramPacket receiveDpk = null;  //½ÓÊÕ±¨ÎÄ
-        DatagramPacket sendDpk = null; // ·¢ËÍµÄ±¨ÎÄ
-        DatagramSocket dsk = null;  
-        BufferedOutputStream bos = null;  
+        output = new FileOutput();
+        DatagramPacket receiveDpk = null;  //æ¥æ”¶æŠ¥æ–‡
+        DatagramPacket sendDpk = null; // å‘é€çš„æŠ¥æ–‡
+        DatagramSocket dsk = null;
         try {  
               
             receiveDpk = new DatagramPacket(buf, buf.length);  
-            dsk = new DatagramSocket(UDPUtils.PORT);  //·şÎñÆ÷¶ËipºÍ¼àÌı¶Ë¿Ú
-            bos = new BufferedOutputStream(new FileOutputStream(SAVE_FILE_DIR + fileName));  
+            dsk = new DatagramSocket(UDPUtils.PORT);  //æœåŠ¡å™¨ç«¯ipå’Œç›‘å¬ç«¯å£
             System.out.println("wait client ....");  
             System.out.println("server ip: " + InetAddress.getByName("localhost"));
             dsk.receive(receiveDpk);  
             System.out.println("after receive...");
-            InetAddress receiveAddr = receiveDpk.getAddress();//·µ»Ø½ÓÊÕ»ò·¢ËÍ´ËÊı¾İ±¨ÎÄµÄ»úÆ÷µÄ IP µØÖ·¡£ 
-            int receivePort = receiveDpk.getPort();//·µ»Ø½ÓÊÕ»ò·¢ËÍ¸ÃÊı¾İ±¨ÎÄµÄÔ¶³ÌÖ÷»ú¶Ë¿ÚºÅ¡£
+            InetAddress receiveAddr = receiveDpk.getAddress();//è¿”å›æ¥æ”¶æˆ–å‘é€æ­¤æ•°æ®æŠ¥æ–‡çš„æœºå™¨çš„ IP åœ°å€ã€‚ 
+            int receivePort = receiveDpk.getPort();//è¿”å›æ¥æ”¶æˆ–å‘é€è¯¥æ•°æ®æŠ¥æ–‡çš„è¿œç¨‹ä¸»æœºç«¯å£å·ã€‚
             int readSize = 0;  
             int readCount = 0;  
             int flushSize = 0;  
-            sendDpk = new DatagramPacket(buf, buf.length, receiveAddr, receivePort);//·¢ËÍ±¨ÎÄ£¬·¢ËÍµ½Ö¸¶¨µØÖ·µÄÖ¸¶¨¶Ë¿Ú
+            sendDpk = new DatagramPacket(buf, buf.length, receiveAddr, receivePort);//å‘é€æŠ¥æ–‡ï¼Œå‘é€åˆ°æŒ‡å®šåœ°å€çš„æŒ‡å®šç«¯å£
             while((readSize = receiveDpk.getLength()) != 0){  
                 // validate client send exit flag    
                 if(UDPUtils.isEqualsByteArray(UDPUtils.exitData, buf, readSize)){  
@@ -59,7 +59,7 @@ public class UDPServer {
                 	fileSize = UDPUtils.getFileSize(buf);
                 	System.out.println("file size: " + fileSize);
                 	System.out.println("nums " + new String(UDPUtils.getFileNums(buf)));
-                	bos = new BufferedOutputStream(new FileOutputStream(SAVE_FILE_DIR + fileName)); //¸üĞÂÎÄ¼şÃû
+                	output.open(fileName);
                 	System.out.println("client ip and port: " + receiveAddr + " " + receivePort);
                 	sendDpk.setData(UDPUtils.successData, 0, UDPUtils.successData.length);
                 	dsk.send(sendDpk);
@@ -70,34 +70,26 @@ public class UDPServer {
                 	continue;
                 }
                 System.out.println("receive file content..");
-                receiveAddr = receiveDpk.getAddress();//·µ»Ø½ÓÊÕ»ò·¢ËÍ´ËÊı¾İ±¨ÎÄµÄ»úÆ÷µÄ IP µØÖ·¡£ 
-                receivePort = receiveDpk.getPort();//·µ»Ø½ÓÊÕ»ò·¢ËÍ¸ÃÊı¾İ±¨ÎÄµÄÔ¶³ÌÖ÷»ú¶Ë¿ÚºÅ¡£
+                receiveAddr = receiveDpk.getAddress();//è¿”å›æ¥æ”¶æˆ–å‘é€æ­¤æ•°æ®æŠ¥æ–‡çš„æœºå™¨çš„ IP åœ°å€ã€‚ 
+                receivePort = receiveDpk.getPort();//è¿”å›æ¥æ”¶æˆ–å‘é€è¯¥æ•°æ®æŠ¥æ–‡çš„è¿œç¨‹ä¸»æœºç«¯å£å·ã€‚
             	System.out.println("client ip and port: " + receiveAddr + " " + receivePort);
                 //otherwise, get the file content  
-                bos.write(buf, 0, readSize);  
-                if(++flushSize % 1000 == 0){   
-                    flushSize = 0;  
-                    bos.flush();  
-                }  
+                output.receive(buf, readSize);
                 //sendDpk.setData(UDPUtils.successData, 0, UDPUtils.successData.length);  
                 //dsk.send(sendDpk);  
                 //System.out.println("after send success ");  
                 receiveDpk.setData(buf,0, buf.length);  
                 System.out.println("receive count of "+ ( ++readCount ) +" !");  
                 dsk.receive(receiveDpk);  
-            }  
-              
-            // last flush   
-            bos.flush();  
+            }
         } catch (Exception e) {  
             e.printStackTrace();  
         } finally{  
             try {  
-                if(bos != null)  
-                    bos.close();  
+                output.close();  
                 if(dsk != null)  
                     dsk.close();  
-            } catch (IOException e) {  
+            } catch (Exception e) {  
                 e.printStackTrace();  
             }  
         }  
