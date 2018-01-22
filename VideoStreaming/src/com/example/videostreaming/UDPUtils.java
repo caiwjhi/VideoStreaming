@@ -10,7 +10,7 @@ public class UDPUtils {
     public static final int BUFFER_SIZE = 50 * 1024;  
       
     /** controller port  **/  
-    public static final int PORT = 8888;  
+    public static final int PORT = 8889;  
       
     /** mark transfer success **/  
     public static final byte[] successData = "success data mark".getBytes();  

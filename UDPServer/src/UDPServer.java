@@ -54,26 +54,30 @@ public class UDPServer {
                 	//get the file name
                 	System.out.println("get buf: " + new String(buf));
                 	fileName = UDPUtils.getFileName(buf, UDPUtils.fileInfo.length);
+                	bos = new BufferedOutputStream(new FileOutputStream(SAVE_FILE_DIR + fileName)); //更新文件名
                 	System.out.println("get file name : " + fileName);
                 	System.out.println("client ip and port: " + receiveAddr + " " + receivePort);
                 	sendDpk.setData(UDPUtils.successData, 0, UDPUtils.successData.length);
                 	dsk.send(sendDpk);
-                	bos = new BufferedOutputStream(new FileOutputStream(SAVE_FILE_DIR + fileName)); //更新文件名
+                	System.out.println("after send success ");
                 	receiveDpk.setData(buf,0, buf.length);  
                     System.out.println("receive count of "+ ( ++readCount ) +" !");  
                     dsk.receive(receiveDpk); 
                 	continue;
                 }
                 System.out.println("receive file content..");
+                receiveAddr = receiveDpk.getAddress();//返回接收或发送此数据报文的机器的 IP 地址。 
+                receivePort = receiveDpk.getPort();//返回接收或发送该数据报文的远程主机端口号。
+            	System.out.println("client ip and port: " + receiveAddr + " " + receivePort);
                 //otherwise, get the file content  
                 bos.write(buf, 0, readSize);  
                 if(++flushSize % 1000 == 0){   
                     flushSize = 0;  
                     bos.flush();  
                 }  
-                sendDpk.setData(UDPUtils.successData, 0, UDPUtils.successData.length);  
-                dsk.send(sendDpk);  
-                  
+                //sendDpk.setData(UDPUtils.successData, 0, UDPUtils.successData.length);  
+                //dsk.send(sendDpk);  
+                //System.out.println("after send success ");  
                 receiveDpk.setData(buf,0, buf.length);  
                 System.out.println("receive count of "+ ( ++readCount ) +" !");  
                 dsk.receive(receiveDpk);  
