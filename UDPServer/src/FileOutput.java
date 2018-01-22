@@ -9,7 +9,11 @@ public class FileOutput {
 	private static final String SAVE_FILE_DIR = "D:/wenjing/teachingClass/saveFiles/";
 	private int flushSize;
 	
-	public FileOutput(String name) {
+	public FileOutput() {
+	}
+	
+	public boolean open(String name) {
+		close();
 		fileName = name;
 		flushSize = 0;
 		try {
@@ -17,6 +21,12 @@ public class FileOutput {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+		if (bos != null) {
+			MyThread receiveData = new MyThread();
+			receiveData.start();
+	        return true;
+		}
+		return false;
 	}
 	
 	public void write(byte[] buf, int readSize) {
@@ -41,5 +51,20 @@ public class FileOutput {
 			}
 		}
 	}
+	
+	public static void main(String[] args)  {
+        MyThread thread = new MyThread();
+        thread.start();
+    }
 
 }
+
+class MyThread extends Thread{
+    public MyThread(){
+    }
+    
+    public void run() {
+    	Queue q = new Queue(10, UDPUtils.BUFFER_SIZE, 0, 0);
+    }
+}
+
