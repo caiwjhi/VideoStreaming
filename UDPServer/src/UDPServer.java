@@ -1,19 +1,7 @@
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 
-import javax.swing.filechooser.FileNameExtensionFilter;
- 
-/** 
- * Test file transfer of Server  
- * @author Bill  QQ:593890231 
- * @since v1.0 2014/09/21 
- *  
- */  
 public class UDPServer {  
       
 //    private static final String SAVE_FILE_DIR = "D:/wenjing/teachingClass/saveFiles/";  
@@ -40,7 +28,6 @@ public class UDPServer {
             int receivePort = receiveDpk.getPort();//返回接收或发送该数据报文的远程主机端口号。
             int readSize = 0;  
             int readCount = 0;  
-            int flushSize = 0;  
             sendDpk = new DatagramPacket(buf, buf.length, receiveAddr, receivePort);//发送报文，发送到指定地址的指定端口
             while((readSize = receiveDpk.getLength()) != 0){  
                 // validate client send exit flag    
@@ -67,7 +54,7 @@ public class UDPServer {
                 	receiveDpk.setData(buf,0, buf.length);  
                     System.out.println("receive count of "+ ( ++readCount ) +" !");  
                     dsk.receive(receiveDpk); 
-                	continue;
+                    continue;
                 }
                 System.out.println("receive file content..");
                 receiveAddr = receiveDpk.getAddress();//返回接收或发送此数据报文的机器的 IP 地址。 
@@ -85,8 +72,8 @@ public class UDPServer {
         } catch (Exception e) {  
             e.printStackTrace();  
         } finally{  
-            try {  
-                output.close();  
+            try { 
+                output.close(); 
                 if(dsk != null)  
                     dsk.close();  
             } catch (Exception e) {  

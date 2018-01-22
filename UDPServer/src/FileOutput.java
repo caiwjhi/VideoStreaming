@@ -30,7 +30,6 @@ public class FileOutput {
 			e.printStackTrace();
 		}
 		if (bos != null) {
-			
 			receiveData = new MyThread(100, queue, encoder, flushSize, bos);
 			receiveData.start();
 	        return true;
