@@ -89,7 +89,7 @@ public class MainActivity extends Activity {
 				// TODO Auto-generated method stub
 				Toast.makeText(MainActivity.this, "开始传输视频", Toast.LENGTH_SHORT).show();
 				//myBtn01.setEnabled(false);
-				UdpSendCommondThread th = new UdpSendCommondThread("file name mark " + fileName);
+				UdpSendCommondThread th = new UdpSendCommondThread("file name mark  " + fileName);
 				new Thread(th).start();
 				//不用线程，直接普通函数来发送
 				//UdpSendCommond("file name mark " + fileName);
@@ -367,12 +367,22 @@ public class MainActivity extends Activity {
             	Log.i("wenjing", "in udp send ..");
             	int fileSize = 0;
             	fileSize = getFileSize(new File(filePath));
-            	//String msg = " 00 " + fileSize;//头部信息，编号+空格+大小
-    			byte[] data = (commond).getBytes();
+            	byte[] nums = new byte[2];
+            	nums[0] = 0;
+            	nums[1] = 0;
+            	String msg = nums[0] + nums[1] + "  " + fileSize + "  ";//头部信息，编号+两个空格+大小+两个空格；两个空格是分隔符
+            	Log.i("wenjing", "file size: " + fileSize/50/1024);
+    			byte[] data = (msg + commond).getBytes();
     			//创建数据报
     	        DatagramPacket packet = new DatagramPacket(data, data.length, InetAddress.getByName(serverUrl), serverPort);//发送报文到指定地址
     	        //创建DatagramSocket，实现数据发送和接收
-    	        DatagramSocket socket = new DatagramSocket(UDPUtils.PORT-1);//this port 
+    	        //DatagramSocket socket = new DatagramSocket(UDPUtils.PORT-1);//this port 
+    	        DatagramSocket socket = new DatagramSocket();
+    	        if(socket==null){
+    	        	socket = new DatagramSocket(null);
+    	        	socket.setReuseAddress(true);
+    	        	socket.bind(new InetSocketAddress(UDPUtils.PORT-1));
+    	        }
     	        //向服务器端发送数据报
     	        socket.send(packet);
     	        //Toast.makeText(MainActivity.this, "just after send commond", Toast.LENGTH_SHORT).show();
@@ -439,6 +449,9 @@ public class MainActivity extends Activity {
             receiveDpk = new DatagramPacket(receiveBuf, receiveBuf.length);
             int sendCount = 0;
             Log.i("wenjing", "after new receive dpk");
+            byte[] nums = new byte[2];
+        	nums[0] = 0;
+        	nums[1] = 0;//头部信息，编号
             while((readSize = is.read(buf,0,buf.length)) != -1){//之前是accessFile
                 System.out.println("readSize:"+readSize);
                 dpk.setData(buf, 0, readSize);
