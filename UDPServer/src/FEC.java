@@ -1,7 +1,7 @@
 
 public class FEC {
-	private int M;
-	private int N;
+	public int M; // data blocks
+	public int N; // encoded blocks
 	
 	public FEC(int m, int n) {
 		M = m;
@@ -25,7 +25,16 @@ public class FEC {
 		}
 	}
 
-	public void decode(byte[][] D, byte[][] C, int len, int num) {
+	public void decode(byte[][] D, byte[][] C, int[] ready, int len) {
+		int num = -1;
+		for (int i = 0; i < M; i++) {
+			if (ready[i] == 0) {
+				num = i;
+			}
+		}
+		if (num == -1) {
+			return;
+		}
 		short tmp;
 		for (int i = 0; i < len; i++){
 			tmp = unsigned(C[0][i]);
@@ -48,22 +57,22 @@ public class FEC {
 		System.out.print('\n');
 	}
 
-	public static void main(String[] args) {
-		FEC encoder = new FEC(5,1);
-		byte[][] D = new byte[5][1];
-		for (int i = 0; i < 5; i++){
-			D[i][0] = (byte) (100+i);
-			if (i % 2 == 0) {
-				D[i][0] = (byte) (0-i);
-			}
-		}
-		byte[][] C = new byte[1][1];
-		encoder.encode(D, C, 1);
-		encoder.print(D);
-		encoder.print(C);
-		D[2][0] = 0;
-		encoder.decode(D, C, 1, 2);
-		encoder.print(D);
-	}
+//	public static void main(String[] args) {
+//		FEC encoder = new FEC(5,1);
+//		byte[][] D = new byte[5][1];
+//		for (int i = 0; i < 5; i++){
+//			D[i][0] = (byte) (100+i);
+//			if (i % 2 == 0) {
+//				D[i][0] = (byte) (0-i);
+//			}
+//		}
+//		byte[][] C = new byte[1][1];
+//		encoder.encode(D, C, 1);
+//		encoder.print(D);
+//		encoder.print(C);
+//		D[2][0] = 0;
+//		encoder.decode(D, C, 1, 2);
+//		encoder.print(D);
+//	}
 
 }  

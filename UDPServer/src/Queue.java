@@ -23,7 +23,8 @@ public class Queue {
 		expected = e;
 	}
 	
-	public boolean insert(int num, int[] d) {
+	public boolean insert(byte[] d) {
+		byte num = d[0];
 		if (expected == -1) {
 			queue[pointer] = (byte) num;
 			expected = num;
@@ -38,30 +39,54 @@ public class Queue {
 			return false;
 		}
 		queue[now] = num;
-		System.arraycopy(d, 0, data[now], 0, dataLen);
+		System.arraycopy(d, 1, data[now], 0, dataLen);
 		return true;
 	}
 	
-	public int output(byte[] d) {
-		int tmp = queue[pointer];
-		if (tmp != -1) {
-			queue[pointer] = -1;
+	public void output(byte[][] D, byte[][] C, int[] ready, int M, int N) {
+		for (int i = 0; i < M; i++) {
+			if (queue[pointer] != -1) {
+				queue[pointer] = -1;
+				System.arraycopy(data[pointer], 0, D[i], 0, dataLen);
+				ready[i] = 1;
+			} else {
+				ready[i] = 0;
+			}
 			pointer = (pointer + 1) % len;
-			expected = (expected + 1) % maxn;
-			System.arraycopy(data[pointer], 0, d, 0, dataLen);
 		}
-//		System.out.println("output"+tmp);
-		return tmp;
+		for (int i = 0; i < N; i++) {
+			if (queue[pointer] != -1) {
+				queue[pointer] = -1;
+				System.arraycopy(data[pointer], 0, C[i], 0, dataLen);
+				ready[i] = 1;
+			} else {
+				ready[i] = 0;
+			}
+			pointer = (pointer + 1) % len;
+		}
+		expected = (expected + M + N) % maxn;
 	}
 	
-//	public static void main(String[] args) {  
-//	      Queue q = new Queue(10, 255, 0);
-//	      Random r = new Random();
-//	      for (int i = 0; i < 20; i++) {
-//	    	  int tmp = r.nextInt(10);
-//	    	  System.out.println("insert"+tmp);
-//	    	  q.insert(tmp);
-//	    	  q.output();
-//	      }
-//	}
+	public boolean ready(int M, int N) {
+		int count = 0;
+		for (int i = 0; i < M+N; i++) {
+			if (queue[(pointer+i)%len] != -1) {
+				count ++;
+			}
+		}
+		if (count >= M) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public void clear() {
+		for (int i = 0; i < len; i++) {
+			queue[i] = -1;
+		}
+		pointer = 0;
+		expected = 0;
+	}
+	
 }
