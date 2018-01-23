@@ -3,7 +3,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.Arrays;
+import java.security.MessageDigest;
 
 public class TestEncoder extends Thread{
 	public int bufSize = UDPUtils.BUFFER_SIZE;
@@ -14,11 +18,11 @@ public class TestEncoder extends Thread{
 	public int maxn = 128;
 	
 	public void run(){
+		System.out.println("filename:"+fileName+", md5:"+UDPUtils.getMD5(fileName));
 		File f = new File(fileName);
-		System.out.println("filename:"+fileName+",length:"+f.length());
-		System.out.println("groups:"+f.length()/UDPUtils.BUFFER_SIZE/5+1);
-		output = new FileOutput();
-		output.open("output/"+fileName, f.length());
+		System.out.println("length:"+f.length()+", groups:"+(f.length()/(UDPUtils.BUFFER_SIZE*5)+1));
+		output = new FileOutput("output/");
+		output.open(fileName, f.length());
 		blockNum = 0;
 		InputStream is;
 		int tmpcounter = 0;
@@ -49,6 +53,8 @@ public class TestEncoder extends Thread{
 					C[0][0] = (byte) blockNum;
 					blockNum = (blockNum + 1) % maxn;
 					for (int i = 0; i < M; i++) {
+						if (i == 3)
+							continue;
 						output.receive(D[i]);
 					}
 					for (int i = 0; i < N; i++) {
@@ -56,7 +62,7 @@ public class TestEncoder extends Thread{
 					}
 					count = 0;
 					tmpcounter++;
-					System.out.println("send "+tmpcounter+" groups");
+//					System.out.println("send "+tmpcounter+" groups");
 					sleep(10);
 				}
 			}
@@ -81,7 +87,7 @@ public class TestEncoder extends Thread{
 				output.receive(C[i]);
 			}
 			tmpcounter++;
-			System.out.println("send "+tmpcounter+" groups");
+//			System.out.println("send "+tmpcounter+" groups");
 		}
 		try {
 			is.close();

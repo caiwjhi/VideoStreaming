@@ -57,22 +57,22 @@ public class FEC {
 		System.out.print('\n');
 	}
 
-//	public static void main(String[] args) {
-//		FEC encoder = new FEC(5,1);
-//		byte[][] D = new byte[5][1];
-//		for (int i = 0; i < 5; i++){
-//			D[i][0] = (byte) (100+i);
-//			if (i % 2 == 0) {
-//				D[i][0] = (byte) (0-i);
-//			}
-//		}
-//		byte[][] C = new byte[1][1];
-//		encoder.encode(D, C, 1);
-//		encoder.print(D);
-//		encoder.print(C);
-//		D[2][0] = 0;
-//		encoder.decode(D, C, 1, 2);
-//		encoder.print(D);
-//	}
+//  public static void main(String[] args) {
+//      FEC encoder = new FEC(5,1);
+//      byte[][] D = new byte[5][1];
+//      for (int i = 0; i < 5; i++){
+//          D[i][0] = (byte) (100+i);
+//          if (i % 2 == 0) {
+//              D[i][0] = (byte) (0-i);
+//          }
+//      }
+//      byte[][] C = new byte[1][1];
+//      encoder.encode(D, C, 1);
+//      encoder.print(D);
+//      encoder.print(C);
+//      D[2][0] = 0;
+//      encoder.decode(D, C, 1, 2);
+//      encoder.print(D);
+//  }
 
-}  
+}
