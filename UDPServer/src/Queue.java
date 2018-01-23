@@ -1,5 +1,4 @@
-
-//import java.util.Random;
+import java.util.Arrays;
 
 public class Queue {
 	private int len;
@@ -82,9 +81,7 @@ public class Queue {
 	}
 	
 	public void clear() {
-		for (int i = 0; i < len; i++) {
-			queue[i] = -1;
-		}
+		Arrays.fill(queue, -1);
 		pointer = 0;
 		expected = 0;
 	}

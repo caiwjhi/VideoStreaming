@@ -82,7 +82,7 @@ public class UDPUtils {
     		return false;
 	}
     
-    /*get the file name from buf£»½öÓÃÓÚ´¦ÀíÊÕµ½µÄcommond°ü£¬²»ÓÃÓÚ´¦ÀíÎÄ¼şÄÚÈİ*/
+    /*get the file name from bufï¼›ä»…ç”¨äºå¤„ç†æ”¶åˆ°çš„commondåŒ…ï¼Œä¸ç”¨äºå¤„ç†æ–‡ä»¶å†…å®¹*/
     public static String getFileName(byte[] buf, int begin){
     	/*String res = "";
     	System.out.println("bgin " + begin);
@@ -92,21 +92,21 @@ public class UDPUtils {
     	for(int i = begin; i < buf.length; i++){
     		right[i-begin] = buf[i];
     	}    	
-    	res = new String(right).trim();//È¥µô¿Õ¸ñ£¬ËùÒÔ£¬ÎÄ¼şÃû²»ÒªÓĞ¿Õ¸ñ
+    	res = new String(right).trim();//å»æ‰ç©ºæ ¼ï¼Œæ‰€ä»¥ï¼Œæ–‡ä»¶åä¸è¦æœ‰ç©ºæ ¼
     	System.out.println(res.length());
     	return res;*/
     	String string = new String(buf).trim();
     	String[] strings = string.split("  ");
     	return strings[3];
     }
-    //¸ù¾İÊÕµ½µÄbuf¼ÆËãÎÄ¼ş´óĞ¡£¬·µ»ØintÖµ£¬µ¥Î»ÊÇByte,×Ö½Ú£¬½öÓÃÓÚ´¦ÀíÊÕµ½µÄcommond°ü£¬²»ÓÃÓÚ´¦ÀíÎÄ¼şÄÚÈİ
+    //æ ¹æ®æ”¶åˆ°çš„bufè®¡ç®—æ–‡ä»¶å¤§å°ï¼Œè¿”å›intå€¼ï¼Œå•ä½æ˜¯Byte,å­—èŠ‚ï¼Œä»…ç”¨äºå¤„ç†æ”¶åˆ°çš„commondåŒ…ï¼Œä¸ç”¨äºå¤„ç†æ–‡ä»¶å†…å®¹
     public static int getFileSize(byte[] buf){
     	String string = new String(buf).trim();
     	System.out.println("string len " + string + " " +string.length());
     	String[] strings = string.split("  ");
     	return Integer.valueOf(strings[1]);
     }
-    //µÃµ½bufµÄ±àºÅ£¬Ä¿Ç°½öÓÃÓÚ´¦ÀícommondÊı¾İbuf
+    //å¾—åˆ°bufçš„ç¼–å·ï¼Œç›®å‰ä»…ç”¨äºå¤„ç†commondæ•°æ®buf
     public static byte[] getFileNums(byte[] buf){
     	byte[] ans = new byte[2];
     	ans[0] = buf[0];

@@ -6,6 +6,7 @@ import java.io.IOException;
 public class FileOutput {
 	private BufferedOutputStream bos;
 	private String fileName;
+	private long fileLength;
 	private static final String SAVE_FILE_DIR = "D:/wenjing/teachingClass/saveFiles/";
 	private int flushSize;
 	private MyThread receiveData;
@@ -13,46 +14,34 @@ public class FileOutput {
 	private FEC encoder;
 	
 	public FileOutput() {
-		queue = new Queue(10, UDPUtils.BUFFER_SIZE, 0, 0);
+		queue = new Queue(32, UDPUtils.BUFFER_SIZE, 128, 0);
 		encoder = new FEC(5, 1);
 	}
 	
-	public boolean open(String name) {
+	public boolean open(String name, long length) {
 		if (bos != null) {
 			close();
 			queue.clear();
 		}
+		fileLength = length;
 		fileName = name;
 		flushSize = 0;
 		try {
-			bos = new BufferedOutputStream(new FileOutputStream(SAVE_FILE_DIR + fileName));
+			//bos = new BufferedOutputStream(new FileOutputStream(SAVE_FILE_DIR + fileName));
+			bos = new BufferedOutputStream(new FileOutputStream(fileName));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
 		if (bos != null) {
-			receiveData = new MyThread(100, queue, encoder, flushSize, bos);
+			receiveData = new MyThread(10, queue, encoder, flushSize, bos, fileLength);
 			receiveData.start();
 	        return true;
 		}
 		return false;
 	}
 	
-	public void receive(byte[] buf, int readSize) {
+	public void receive(byte[] buf) {
 		queue.insert(buf);
-	}
-	
-	public static void write(BufferedOutputStream bos, byte[][] buf, int flushSize) {
-		for (int i = 0; i < buf.length; i++) {
-			try {
-				bos.write(buf[i], 0, buf[i].length);
-				if(++flushSize % 1000 == 0){
-			        flushSize = 0;
-			        bos.flush();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
 	}
 	
 	public void close() {
@@ -64,13 +53,15 @@ public class FileOutput {
 				e.printStackTrace();
 			}
 		}
-		receiveData.stop();
+		receiveData.stop = true;
 	}
 
 }
 
 class MyThread extends Thread{
 	private int waitTime;
+	private long fileLength;
+	private long length;
 	private Queue queue;
 	private FEC encoder;
 	private byte[][] data;
@@ -79,8 +70,10 @@ class MyThread extends Thread{
 	private int encodedBlocks;
 	private int flushSize;
 	private BufferedOutputStream bos;
+	public boolean stop;
+	public int tmpcounter;
 	
-    public MyThread(int time, Queue q, FEC e, int f, BufferedOutputStream b){
+    public MyThread(int time, Queue q, FEC e, int f, BufferedOutputStream b, long len){
     		waitTime = time;
     		queue = q;
     		encoder = e;
@@ -88,20 +81,67 @@ class MyThread extends Thread{
     		encodedBlocks = encoder.N;
     		flushSize = f;
     		bos = b;
+    		fileLength = len;
+    		length = 0;
+    		stop = false;
+    		tmpcounter = 0;
     		data = new byte[dataBlocks][UDPUtils.BUFFER_SIZE];
     		encoded = new byte[encodedBlocks][UDPUtils.BUFFER_SIZE];
     }
     
+	public void writeData(byte[][] buf, long len) {
+		long count = 0;
+		int dataLen = buf[0].length;
+		for (int i = 0; i < buf.length; i++) {
+			if (len - count < dataLen) {
+				try {
+					bos.write(buf[i], 0, (int) (len - count));
+					bos.flush();
+					bos.close();
+					stop = true;
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				break;
+			}
+			try {
+				bos.write(buf[i], 0, dataLen);
+//				if(++flushSize % 1000 == 0){
+//			        flushSize = 0;
+//			        bos.flush();
+//				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			count += dataLen;
+		}
+		if (bos != null) {
+			try {
+				bos.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+    
     public void write(int[] ready) {
     		queue.output(data, encoded, ready, dataBlocks, encodedBlocks);
     		encoder.decode(data, encoded, ready, UDPUtils.BUFFER_SIZE);
-    		FileOutput.write(bos, data, flushSize);
+    		long len = dataBlocks * UDPUtils.BUFFER_SIZE;
+    		if (fileLength-length < dataBlocks * UDPUtils.BUFFER_SIZE) {
+    			len = fileLength-length;
+    		}
+    		writeData(data, len);
+    		length += len;
+    		tmpcounter++;
+    		System.out.println("receive "+tmpcounter+" groups, length="+length+", fileLength="+fileLength);
     }
     
     public void run() {
+    		System.out.println("Thread start");
     		int counter = 0;
     		int[] ready = new int[dataBlocks+encodedBlocks];
-    		while (true) {
+    		while (!stop) {
     			if (queue.ready(dataBlocks, encodedBlocks)) {
     				write(ready);
     				counter = 0;
@@ -119,6 +159,7 @@ class MyThread extends Thread{
 				}
     			}
     		}
+    		System.out.println("Thread stop");
     }
 }
 

@@ -14,9 +14,9 @@ public class FEC {
 		return (short) (x & 0xFF);
 	}
 	
-	public void encode(byte[][] D, byte[][] C, int len) {
+	public void encode(byte[][] D, byte[][] C, int len, int offset) {
 		short tmp;
-		for (int i = 0; i < len; i++){
+		for (int i = offset; i < len+offset; i++){
 			tmp = 0;
 			for (int j = 0; j < M; j++){
 				 tmp += unsigned(D[j][i]);

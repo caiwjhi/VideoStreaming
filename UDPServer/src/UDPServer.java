@@ -46,7 +46,7 @@ public class UDPServer {
                 	fileSize = UDPUtils.getFileSize(buf);
                 	System.out.println("file size: " + fileSize);
                 	System.out.println("nums " + new String(UDPUtils.getFileNums(buf)));
-                	output.open(fileName);
+                	output.open(fileName, fileSize);
                 	System.out.println("client ip and port: " + receiveAddr + " " + receivePort);
                 	sendDpk.setData(UDPUtils.successData, 0, UDPUtils.successData.length);
                 	dsk.send(sendDpk);
@@ -61,7 +61,7 @@ public class UDPServer {
                 receivePort = receiveDpk.getPort();//返回接收或发送该数据报文的远程主机端口号。
             	System.out.println("client ip and port: " + receiveAddr + " " + receivePort);
                 //otherwise, get the file content  
-                output.receive(buf, readSize);
+                output.receive(buf);
                 //sendDpk.setData(UDPUtils.successData, 0, UDPUtils.successData.length);  
                 //dsk.send(sendDpk);  
                 //System.out.println("after send success ");  
