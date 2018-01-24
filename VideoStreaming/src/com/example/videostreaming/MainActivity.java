@@ -15,6 +15,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -55,6 +57,8 @@ public class MainActivity extends Activity {
     private Button myBtn01, myBtn02;
     private TextView textShow;
     private String fileName;
+    private List<Integer> missingNums = new ArrayList<Integer>();
+    private byte[][] fileBuf = new byte[1025][UDPUtils.BUFFER_SIZE];//文件内容缓存，用来重传
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +95,9 @@ public class MainActivity extends Activity {
 				//myBtn01.setEnabled(false);
 				UdpSendCommondThread th = new UdpSendCommondThread("file name mark  " + fileName);
 				new Thread(th).start();
+				
+				UdpClientListening th2 = new UdpClientListening();
+				new Thread(th2).start();
 				//不用线程，直接普通函数来发送
 				//UdpSendCommond("file name mark " + fileName);
 				//UdpSendFile();
@@ -356,6 +363,40 @@ public class MainActivity extends Activity {
             }
         }
     }
+    //客户端监听，来接受服务器端发的缺失包的信息
+    class UdpClientListening implements Runnable{
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			Log.i("wenjing", "in client listening..");
+			byte[] receiveData = new byte[1024];
+			DatagramPacket receiveDpk = null;  //接收报文
+			DatagramSocket dsk = null;
+			byte[] nums = new byte[2];//receive identify nums
+			try{
+				receiveDpk = new DatagramPacket(receiveData, receiveData.length);  
+				dsk = new DatagramSocket(UDPUtils.CLIENT_PORT);  //服务器端ip和监听端口
+				Log.i("wenjing", "wait server resend  ....");  
+				dsk.receive(receiveDpk);  
+				int readSize = 0; 
+				while((readSize = receiveDpk.getLength()) != 0){  
+					if(UDPUtils.isEqualsByteArray(UDPUtils.missingNum, receiveData, readSize)){  
+						Log.i("wenjing", "get missing num from server ...");  
+						System.arraycopy(receiveData, UDPUtils.missingNum.length, nums, 0, 2);
+						missingNums.add(UDPUtils.bytes2Int(nums, 0, 2));
+						// send exit flag     
+					}
+					receiveDpk.setData(receiveData,0, receiveData.length); 
+					dsk.receive(receiveDpk);
+				}
+			}catch (Exception e) {
+				// TODO: handle exception
+				Log.i("wenjing", "exce " + e);
+			}
+		}
+    	
+    }
     class UdpSendCommondThread implements Runnable{
         private String commond;
         public UdpSendCommondThread(String commond){
@@ -411,6 +452,27 @@ public class MainActivity extends Activity {
     	}
     }
     
+    public void resendMissData(DatagramSocket dsk){
+    	Log.i("wenjing", "in resend missing..");
+    	DatagramPacket dpk = null;
+        byte[] sendData = new byte[UDPUtils.BUFFER_SIZE+2];
+        try{
+        	dpk = new DatagramPacket(sendData, sendData.length, new InetSocketAddress(InetAddress.getByName(serverUrl), serverPort));
+        	byte nums[] = new byte[2];
+        	if(missingNums.isEmpty())
+        		return;
+        	for(int i = 0; i < missingNums.size(); i++){
+        		nums = UDPUtils.int2Bytes(missingNums.get(i), 2);
+        		Log.i("wenjing", "missing nums " + missingNums.get(i));
+        		sendData = UDPUtils.byteMerger(nums, fileBuf[missingNums.get(i)]);
+        		dpk.setData(sendData);
+        		dsk.send(dpk);
+        	}
+        }catch (Exception e) {
+			// TODO: handle exception
+        	Log.i("wenjing", "resend .. " + e);
+		}
+    }
     public void UdpSendFile(){
     	long startTime = System.currentTimeMillis();
     	//textShow.setText("in send file fun..");
@@ -452,20 +514,22 @@ public class MainActivity extends Activity {
         	is = new FileInputStream(file);
             dpk = new DatagramPacket(buf, buf.length,new InetSocketAddress(InetAddress.getByName(serverUrl), serverPort));
             dsk = new DatagramSocket(UDPUtils.PORT-2);//client listening port
-            Log.i("wenjing", "after new dsk");
+            //Log.i("wenjing", "after new dsk");
             receiveDpk = new DatagramPacket(receiveBuf, receiveBuf.length);
             int sendCount = 0;
             Log.i("wenjing", "after new receive dpk");
             byte[] nums = new byte[2];//编号，identity number of each package
             while((readSize = is.read(buf,0,buf.length)) != -1){//之前是accessFile
-                System.out.println("readSize:"+readSize);
+            	resendMissData(dsk);
                 System.arraycopy(buf, 0, D[count], 2, readSize);
                 sendCount++;
+                fileBuf[sendCount] = buf;
                 nums = UDPUtils.int2Bytes(sendCount, 2);
                 byte[] sendData = UDPUtils.byteMerger(nums, buf);
                 D[count][0] = nums[0];
 				D[count][1] = nums[1];
 				count ++;
+				Log.i("wenjing", "buf len " + sendData.length);
 				dpk.setData(sendData, 0, sendData.length);
                 dsk.send(dpk);
 				if (count == M) {//另外发送校验包
@@ -478,6 +542,7 @@ public class MainActivity extends Activity {
 	                dsk.send(dpk);
 					count = 0;
 				}
+				
                 // wait server response
                 /*{
                     while(true){
@@ -504,7 +569,7 @@ public class MainActivity extends Activity {
             //Toast.makeText(MainActivity.this, "finish send this file", Toast.LENGTH_SHORT).show();
             Log.i("wenjing", "finish the send file..");
          // send exit wait server response
-            /*while(true){
+            while(true){
                 System.out.println("client send exit message ....");
                 dpk.setData(UDPUtils.exitData,0,UDPUtils.exitData.length);
                 dsk.send(dpk);
@@ -513,11 +578,11 @@ public class MainActivity extends Activity {
                 dsk.receive(receiveDpk);
                 // byte[] receiveData = dpk.getData();
                 if(!UDPUtils.isEqualsByteArray(UDPUtils.exitData, receiveBuf, dpk.getLength())){
-                    System.out.println("client Resend exit message ....");
-                    dsk.send(dpk);
+                    Log.i("wenjing", "client Resend exit message ....");
+                    //dsk.send(dpk);
                 }else
                     break;
-            }*/
+            }
             }
         }catch (Exception e) {
         	Log.e("wenjing", "exception?? "+ e);

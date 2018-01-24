@@ -11,12 +11,18 @@ public class UDPUtils {
       
     /** controller port  **/  
     public static final int PORT = 8889;  
+    
+    /*client port*/
+    public static final int CLIENT_PORT = 8181;
       
     /** mark transfer success **/  
     public static final byte[] successData = "success data mark".getBytes();  
       
     /** mark transfer exit **/  
     public static final byte[] exitData = "exit data mark".getBytes();   
+    
+    /*mark missing data */
+	public static final byte[] missingNum = "missing mark".getBytes();
       
     public static void main(String[] args) {  
         byte[] b = new byte[]{1};  

@@ -20,6 +20,8 @@ public class UDPUtils {
 	
 	/** controller port  **/  
 	public static final int PORT = 8889;  
+	/*client port*/
+    public static final int CLIENT_PORT = 8181;
 	  
 	/** mark transfer success **/  
 	public static final byte[] successData = "success data mark".getBytes();  
@@ -29,6 +31,9 @@ public class UDPUtils {
 	  
 	/*mark the file name message*/
 	public static final byte[] fileInfo = "file name mark".getBytes();
+	
+	/*mark missing data */
+	public static final byte[] missingNum = "missing mark".getBytes();
 	/*
 	public static void main(String[] args) {  
 		byte[] b = new byte[]{1};  
@@ -168,5 +173,11 @@ public class UDPUtils {
         }  
         return sum;  
     }  
-	
+  //java 合并两个byte数组  
+    public static byte[] byteMerger(byte[] byte_1, byte[] byte_2){  
+        byte[] byte_3 = new byte[byte_1.length+byte_2.length];  
+        System.arraycopy(byte_1, 0, byte_3, 0, byte_1.length);  
+        System.arraycopy(byte_2, 0, byte_3, byte_1.length, byte_2.length);  
+        return byte_3;  
+    }  
 }  
