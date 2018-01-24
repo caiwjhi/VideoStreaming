@@ -134,10 +134,7 @@ class MyThread extends Thread{
 	
 	public void write(int[] ready) {
 		queue.output(data, encoded, ready, dataBlocks, encodedBlocks);
-		boolean flag = encoder.decode(data, encoded, ready, UDPUtils.BUFFER_SIZE);
-		if (!flag) {
-			System.out.println("decode fail");
-		}
+		encoder.decode(data, encoded, ready, UDPUtils.BUFFER_SIZE);
 		long len = dataBlocks * UDPUtils.BUFFER_SIZE;
 		if (fileLength-length < dataBlocks * UDPUtils.BUFFER_SIZE) {
 			len = fileLength-length;
