@@ -77,6 +77,15 @@ public class Queue {
 		return count;
 	}
 	
+	public int getFirstMissing(int M, int N) {
+		for (int i = 0; i < M+N; i++) {
+			if (queue[(pointer+i)%len] == -1) {
+				return expected+i;
+			}
+		}
+		return -1;
+	}
+	
 	public void clear() {
 		Arrays.fill(queue, -1);
 		pointer = 0;

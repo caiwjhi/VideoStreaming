@@ -45,6 +45,10 @@ public class FileOutput {
 		queue.insert(buf);
 	}
 	
+	public int missing() {
+		return receiveData.missing;
+	}
+	
 	public void close() {
 		if(bos != null) {
 			try {
@@ -74,6 +78,7 @@ class MyThread extends Thread{
 	public boolean stop;
 	public int tmpcounter;
 	public String fileName;
+	public int missing;
 	
 	public MyThread(int time, Queue q, FEC e, BufferedOutputStream b, long len, String name){
 		waitTime = time;
@@ -87,6 +92,7 @@ class MyThread extends Thread{
 		stop = false;
 		tmpcounter = 0;
 		fileName = name;
+		missing = -1;
 		data = new byte[dataBlocks][UDPUtils.BUFFER_SIZE];
 		encoded = new byte[encodedBlocks][UDPUtils.BUFFER_SIZE];
 	}
@@ -157,7 +163,8 @@ class MyThread extends Thread{
 					counter++;
 				if (counter >= 10) {
 					System.out.println("receive fail");
-					write(ready);
+//					write(ready);
+					missing = queue.getFirstMissing(dataBlocks, encodedBlocks);
 					counter = 0;
 					continue;
 				}
