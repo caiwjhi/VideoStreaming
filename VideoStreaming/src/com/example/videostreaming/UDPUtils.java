@@ -70,4 +70,30 @@ public class UDPUtils {
         //  return false;  
         return flag;  
     }  
+    
+    public static byte[] int2Bytes(int value, int len) {  
+        byte[] b = new byte[len];  
+        for (int i = 0; i < len; i++) {  
+            b[len - i - 1] = (byte)((value >> 8 * i) & 0xff);  
+        }  
+        return b;  
+    }  
+    public static int bytes2Int(byte[] b, int start, int len) {  
+        int sum = 0;  
+        int end = start + len;  
+        for (int i = start; i < end; i++) {  
+            int n = ((int)b[i]) & 0xff;  
+            n <<= (--len) * 8;  
+            sum += n;  
+        }  
+        return sum;  
+    }  
+    
+  //java 合并两个byte数组  
+    public static byte[] byteMerger(byte[] byte_1, byte[] byte_2){  
+        byte[] byte_3 = new byte[byte_1.length+byte_2.length];  
+        System.arraycopy(byte_1, 0, byte_3, 0, byte_1.length);  
+        System.arraycopy(byte_2, 0, byte_3, byte_1.length, byte_2.length);  
+        return byte_3;  
+    }  
 }  

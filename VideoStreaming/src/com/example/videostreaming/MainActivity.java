@@ -45,11 +45,11 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 	public static final int REC_REQUESTCODE = 1;
 	
-	/**·şÎñÆ÷µØÖ·*/
+	/**æœåŠ¡å™¨åœ°å€*/
     private String serverUrl="166.111.139.163";//"192.168.1.100";
-    /**·şÎñÆ÷¶Ë¿Ú*/
+    /**æœåŠ¡å™¨ç«¯å£*/
     private int serverPort=8889;
-    /*ÊÇ·ñÑ¡ÔñÎÄ¼ş*/
+    /*æ˜¯å¦é€‰æ‹©æ–‡ä»¶*/
     private boolean selectedFile = false;
     private String filePath = "";
     private Button myBtn01, myBtn02;
@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
 		Log.i("wenjing", "onCreate!!!");
 		Log.v("", "test on create///");
 		textShow =(TextView)findViewById(R.id.text);
-		//¿ªÊ¼Ñ¡ÔñÎÄ¼ş
+		//å¼€å§‹é€‰æ‹©æ–‡ä»¶
         myBtn01.setOnClickListener(new OnClickListener() {
 			
 			@Override
@@ -87,18 +87,18 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				Toast.makeText(MainActivity.this, "¿ªÊ¼´«ÊäÊÓÆµ", Toast.LENGTH_SHORT).show();
+				Toast.makeText(MainActivity.this, "å¼€å§‹ä¼ è¾“è§†é¢‘", Toast.LENGTH_SHORT).show();
 				//myBtn01.setEnabled(false);
 				UdpSendCommondThread th = new UdpSendCommondThread("file name mark  " + fileName);
 				new Thread(th).start();
-				//²»ÓÃÏß³Ì£¬Ö±½ÓÆÕÍ¨º¯ÊıÀ´·¢ËÍ
+				//ä¸ç”¨çº¿ç¨‹ï¼Œç›´æ¥æ™®é€šå‡½æ•°æ¥å‘é€
 				//UdpSendCommond("file name mark " + fileName);
 				//UdpSendFile();
 			}
 		});
         
 	}
-	//»Øµ÷·½·¨£¬´ÓµÚ¶ş¸öÒ³Ãæ»ØÀ´µÄÊ±ºò»áÖ´ĞĞÕâ¸ö·½·¨
+	//å›è°ƒæ–¹æ³•ï¼Œä»ç¬¬äºŒä¸ªé¡µé¢å›æ¥çš„æ—¶å€™ä¼šæ‰§è¡Œè¿™ä¸ªæ–¹æ³•
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
     	Log.v("wenjing", "on activity result!!!");
     	//textShow.setText("on activity result!!!");
@@ -110,11 +110,11 @@ public class MainActivity extends Activity {
 			String a[]=new String[2];
 			
 			/*another method*/
-			if(Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {//4.4ÒÔºó
+			if(Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {//4.4ä»¥å
 				path = getPath(this, uri);
 				//textShow.setText(path);
 				//Toast.makeText(this,path,Toast.LENGTH_SHORT).show();
-			}else {//4.4ÒÔÏÂÏÂÏµÍ³µ÷ÓÃ·½·¨
+			}else {//4.4ä»¥ä¸‹ä¸‹ç³»ç»Ÿè°ƒç”¨æ–¹æ³•
 				path = getRealPathFromURI(uri);
 				//textShow.setText(path);
 				//Toast.makeText(MainActivity.this, path+"222222", Toast.LENGTH_SHORT).show();
@@ -151,7 +151,7 @@ public class MainActivity extends Activity {
         return res;
     }
 	/**
-	* ×¨ÎªAndroid4.4Éè¼ÆµÄ´ÓUri»ñÈ¡ÎÄ¼ş¾ø¶ÔÂ·¾¶£¬ÒÔÇ°µÄ·½·¨ÒÑ²»ºÃÊ¹
+	* ä¸“ä¸ºAndroid4.4è®¾è®¡çš„ä»Uriè·å–æ–‡ä»¶ç»å¯¹è·¯å¾„ï¼Œä»¥å‰çš„æ–¹æ³•å·²ä¸å¥½ä½¿
 	*/
 	@SuppressLint("NewApi")
 	public String getPath(final Context context, final Uri uri) {
@@ -263,9 +263,9 @@ public class MainActivity extends Activity {
     }
 
 	public void myAlert(String mess){
-	    new AlertDialog.Builder(this).setTitle("ÏµÍ³ÌáÊ¾")//ÉèÖÃ¶Ô»°¿ò±êÌâ   	  
-	    .setMessage("test" + mess)//ÉèÖÃÏÔÊ¾µÄÄÚÈİ  
-	    .show();//ÔÚ°´¼üÏìÓ¦ÊÂ¼şÖĞÏÔÊ¾´Ë¶Ô»°¿ò  
+	    new AlertDialog.Builder(this).setTitle("ç³»ç»Ÿæç¤º")//è®¾ç½®å¯¹è¯æ¡†æ ‡é¢˜   	  
+	    .setMessage("test" + mess)//è®¾ç½®æ˜¾ç¤ºçš„å†…å®¹  
+	    .show();//åœ¨æŒ‰é”®å“åº”äº‹ä»¶ä¸­æ˜¾ç¤ºæ­¤å¯¹è¯æ¡†  
 	     
 	}
 	@Override
@@ -293,14 +293,14 @@ public class MainActivity extends Activity {
 		}
 		return false;
 	}
-	/**·¢ËÍÃüÁîÏß³Ìtcp*/
+	/**å‘é€å‘½ä»¤çº¿ç¨‹tcp*/
     class TcpSendCommondThread extends Thread{
     	private String commond;
     	public TcpSendCommondThread(String commond){
     		this.commond=commond;
     	}
     	public void run(){
-    		//ÊµÀı»¯Socket  
+    		//å®ä¾‹åŒ–Socket  
             try {
     			Socket socket=new Socket(serverUrl,serverPort);
     			PrintWriter out = new PrintWriter(socket.getOutputStream());
@@ -312,7 +312,7 @@ public class MainActivity extends Activity {
     	}
     }
     
-    /**·¢ËÍÎÄ¼şÏß³Ì,»ùÓÚtcp*/
+    /**å‘é€æ–‡ä»¶çº¿ç¨‹,åŸºäºtcp*/
     class TcpSendFileThread extends Thread{	
     	private String username;
     	private String ipname;
@@ -335,10 +335,10 @@ public class MainActivity extends Activity {
     	
         public void run() {
             try{
-            	//½«Í¼ÏñÊı¾İÍ¨¹ıSocket·¢ËÍ³öÈ¥
+            	//å°†å›¾åƒæ•°æ®é€šè¿‡Socketå‘é€å‡ºå»
                 Socket tempSocket = new Socket(ipname, port);
                 outsocket = tempSocket.getOutputStream();
-                //Ğ´ÈëÍ·²¿Êı¾İĞÅÏ¢
+                //å†™å…¥å¤´éƒ¨æ•°æ®ä¿¡æ¯
             	String msg=java.net.URLEncoder.encode("PHONEVIDEO|"+username+"|","utf-8");
                 byte[] buffer= msg.getBytes();
                 outsocket.write(buffer);
@@ -370,12 +370,12 @@ public class MainActivity extends Activity {
             	byte[] nums = new byte[2];
             	nums[0] = 0;
             	nums[1] = 0;
-            	String msg = nums[0] + nums[1] + "  " + fileSize + "  ";//Í·²¿ĞÅÏ¢£¬±àºÅ+Á½¸ö¿Õ¸ñ+´óĞ¡+Á½¸ö¿Õ¸ñ£»Á½¸ö¿Õ¸ñÊÇ·Ö¸ô·û
+            	String msg = nums[0] + nums[1] + "  " + fileSize + "  ";//å¤´éƒ¨ä¿¡æ¯ï¼Œç¼–å·+ä¸¤ä¸ªç©ºæ ¼+å¤§å°+ä¸¤ä¸ªç©ºæ ¼ï¼›ä¸¤ä¸ªç©ºæ ¼æ˜¯åˆ†éš”ç¬¦
             	Log.i("wenjing", "file size: " + fileSize/50/1024);
     			byte[] data = (msg + commond).getBytes();
-    			//´´½¨Êı¾İ±¨
-    	        DatagramPacket packet = new DatagramPacket(data, data.length, InetAddress.getByName(serverUrl), serverPort);//·¢ËÍ±¨ÎÄµ½Ö¸¶¨µØÖ·
-    	        //´´½¨DatagramSocket£¬ÊµÏÖÊı¾İ·¢ËÍºÍ½ÓÊÕ
+    			//åˆ›å»ºæ•°æ®æŠ¥
+    	        DatagramPacket packet = new DatagramPacket(data, data.length, InetAddress.getByName(serverUrl), serverPort);//å‘é€æŠ¥æ–‡åˆ°æŒ‡å®šåœ°å€
+    	        //åˆ›å»ºDatagramSocketï¼Œå®ç°æ•°æ®å‘é€å’Œæ¥æ”¶
     	        //DatagramSocket socket = new DatagramSocket(UDPUtils.PORT-1);//this port 
     	        DatagramSocket socket = new DatagramSocket();
     	        if(socket==null){
@@ -383,23 +383,23 @@ public class MainActivity extends Activity {
     	        	socket.setReuseAddress(true);
     	        	socket.bind(new InetSocketAddress(UDPUtils.PORT-1));
     	        }
-    	        //Ïò·şÎñÆ÷¶Ë·¢ËÍÊı¾İ±¨
+    	        //å‘æœåŠ¡å™¨ç«¯å‘é€æ•°æ®æŠ¥
     	        socket.send(packet);
     	        //Toast.makeText(MainActivity.this, "just after send commond", Toast.LENGTH_SHORT).show();
-    	        //½ÓÊÕ·şÎñÆ÷ÏìÓ¦Êı¾İ
+    	        //æ¥æ”¶æœåŠ¡å™¨å“åº”æ•°æ®
     	        Log.i("wenjing", "after send ..");
     	        byte[] data2 = new byte[1024];
     	        DatagramPacket packet2 = new DatagramPacket(data2, data2.length);
     	        socket.receive(packet2);
     	        Log.i("wenjing", "after receive...");
-    	        InetAddress receiveAddr = packet2.getAddress();//·µ»Ø½ÓÊÕ»ò·¢ËÍ´ËÊı¾İ±¨ÎÄµÄ»úÆ÷µÄ IP µØÖ·¡£ 
-                int receivePort = packet2.getPort();//·µ»Ø½ÓÊÕ»ò·¢ËÍ¸ÃÊı¾İ±¨ÎÄµÄÔ¶³ÌÖ÷»ú¶Ë¿ÚºÅ¡£
+    	        InetAddress receiveAddr = packet2.getAddress();//è¿”å›æ¥æ”¶æˆ–å‘é€æ­¤æ•°æ®æŠ¥æ–‡çš„æœºå™¨çš„ IP åœ°å€ã€‚ 
+                int receivePort = packet2.getPort();//è¿”å›æ¥æ”¶æˆ–å‘é€è¯¥æ•°æ®æŠ¥æ–‡çš„è¿œç¨‹ä¸»æœºç«¯å£å·ã€‚
                 Log.i("wenjing", "receive add : " +receiveAddr +" " +receivePort);
     	        //Toast.makeText(MainActivity.this, "after receive", Toast.LENGTH_SHORT).show();
     	        String info = new String(data2, 0, packet2.getLength());
-    	        System.out.println("ÎÒÊÇ¿Í»§¶Ë£¬·şÎñÆ÷Ëµ£º"+info);
-    	        //textShow.setText("·¢ËÍÃüÁîºó£¬·şÎñÆ÷¶Ë»Ø¸´£º" + info);
-    	        Log.i("wenjing", "·¢ËÍÃüÁîºó£¬·şÎñÆ÷¶Ë»Ø¸´22£º" + info);
+    	        System.out.println("æˆ‘æ˜¯å®¢æˆ·ç«¯ï¼ŒæœåŠ¡å™¨è¯´ï¼š"+info);
+    	        //textShow.setText("å‘é€å‘½ä»¤åï¼ŒæœåŠ¡å™¨ç«¯å›å¤ï¼š" + info);
+    	        Log.i("wenjing", "å‘é€å‘½ä»¤åï¼ŒæœåŠ¡å™¨ç«¯å›å¤22ï¼š" + info);
     	        socket.close();
     	        Log.i("wenjing", "before udp send file in this thread");
     	        UdpSendFile();
@@ -449,12 +449,13 @@ public class MainActivity extends Activity {
             receiveDpk = new DatagramPacket(receiveBuf, receiveBuf.length);
             int sendCount = 0;
             Log.i("wenjing", "after new receive dpk");
-            byte[] nums = new byte[2];
-        	nums[0] = 0;
-        	nums[1] = 0;//Í·²¿ĞÅÏ¢£¬±àºÅ
-            while((readSize = is.read(buf,0,buf.length)) != -1){//Ö®Ç°ÊÇaccessFile
+            byte[] nums = new byte[2];//ç¼–å·ï¼Œidentity number of each package
+            while((readSize = is.read(buf,0,buf.length)) != -1){//ä¹‹å‰æ˜¯accessFile
                 System.out.println("readSize:"+readSize);
-                dpk.setData(buf, 0, readSize);
+                sendCount++;
+                nums = UDPUtils.int2Bytes(sendCount, 2);
+                byte[] sendData = UDPUtils.byteMerger(nums, buf);
+                dpk.setData(sendData, 0, sendData.length);
                 dsk.send(dpk);
                 // wait server response
                 /*{
@@ -471,13 +472,13 @@ public class MainActivity extends Activity {
                             dsk.send(dpk);
                             Log.i("wenjing", "after resend..");
                         }else{
-                        	Log.i("wenjing", "·¢ËÍÃüÁîºó£¬·şÎñÆ÷¶Ë»Ø¸´22£º" + new String(receiveBuf));
+                        	Log.i("wenjing", "å‘é€å‘½ä»¤åï¼ŒæœåŠ¡å™¨ç«¯å›å¤22ï¼š" + new String(receiveBuf));
                             break;
                            }
                     }
                 }*/
 
-                Log.i("wenjing", "send count of "+(++sendCount)+"!");
+                Log.i("wenjing", "send count of "+(sendCount)+"!");
             }
             //Toast.makeText(MainActivity.this, "finish send this file", Toast.LENGTH_SHORT).show();
             Log.i("wenjing", "finish the send file..");
@@ -513,9 +514,10 @@ public class MainActivity extends Activity {
 
         long endTime = System.currentTimeMillis();
         System.out.println("time:"+(endTime - startTime));
+        Log.i("wenjing", "time:"+(endTime - startTime));
     }
     /**
-     * »ñÈ¡Ö¸¶¨ÎÄ¼ş´óĞ¡(µ¥Î»£º×Ö½Ú)
+     * è·å–æŒ‡å®šæ–‡ä»¶å¤§å°(å•ä½ï¼šå­—èŠ‚)
      *
      * @param file
      * @return

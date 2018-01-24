@@ -90,7 +90,7 @@ public class UDPUtils {
 			return false;
 	}
 	
-	/*get the file name from buf；仅用于处理收到的commond包，不用于处理文件内容*/
+	/*get the file name from buf 目前仅适用于处理commond命令数据包*/
 	public static String getFileName(byte[] buf, int begin){
 		/*String res = "";
 		System.out.println("bgin " + begin);
@@ -100,21 +100,21 @@ public class UDPUtils {
 		for(int i = begin; i < buf.length; i++){
 			right[i-begin] = buf[i];
 		}    	
-		res = new String(right).trim();//去掉空格，所以，文件名不要有空格
+		res = new String(right).trim();//鍘绘帀绌烘牸锛屾墍浠ワ紝鏂囦欢鍚嶄笉瑕佹湁绌烘牸
 		System.out.println(res.length());
 		return res;*/
 		String string = new String(buf).trim();
 		String[] strings = string.split("  ");
 		return strings[3];
 	}
-	//根据收到的buf计算文件大小，返回int值，单位是Byte,字节，仅用于处理收到的commond包，不用于处理文件内容
+	//get file size, 目前仅适用于处理commond命令数据包
 	public static int getFileSize(byte[] buf){
 		String string = new String(buf).trim();
 		System.out.println("string len " + string + " " +string.length());
 		String[] strings = string.split("  ");
 		return Integer.valueOf(strings[1]);
 	}
-	//得到buf的编号，目前仅用于处理commond数据buf
+	//get the identity num of a buf,return a byte[] whose length is 2;
 	public static byte[] getFileNums(byte[] buf){
 		byte[] ans = new byte[2];
 		ans[0] = buf[0];
@@ -147,5 +147,24 @@ public class UDPUtils {
 		}
 		return value;
 	}
+	//get byte[] from int value, len is the length of byte[]
+	public static byte[] int2Bytes(int value, int len) {  
+        byte[] b = new byte[len];  
+        for (int i = 0; i < len; i++) {  
+            b[len - i - 1] = (byte)((value >> 8 * i) & 0xff);  
+        }  
+        return b;  
+    }  
+	//get int value from a byte[]
+    public static int bytes2Int(byte[] b, int start, int len) {  
+        int sum = 0;  
+        int end = start + len;  
+        for (int i = start; i < end; i++) {  
+            int n = ((int)b[i]) & 0xff;  
+            n <<= (--len) * 8;  
+            sum += n;  
+        }  
+        return sum;  
+    }  
 	
 }  
