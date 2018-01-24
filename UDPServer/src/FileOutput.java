@@ -30,6 +30,7 @@ public class FileOutput {
 		try {
 			bos = new BufferedOutputStream(new FileOutputStream(fileDir+fileName));
 		} catch (FileNotFoundException e) {
+			System.out.println(fileDir + fileName);
 			e.printStackTrace();
 		}
 		if (bos != null) {
