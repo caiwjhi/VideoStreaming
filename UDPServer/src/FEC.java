@@ -3,9 +3,9 @@ public class FEC {
 	public int M; // data blocks
 	public int N; // encoded blocks
 	
-	public FEC(int m, int n) {
-		M = m;
-		N = n;
+	public FEC(int dataBlockNum, int encodedBlockNum) {
+		M = dataBlockNum;
+		N = encodedBlockNum;
 		// generateGF();
 		// generatePolynomial();
 	}

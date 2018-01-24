@@ -7,29 +7,27 @@ public class Queue {
 	private byte[][] data;
 	private int pointer;
 	private int expected;
-	private int maxn;
 	
-	public Queue(int l, int d, int m, int e) {
-		len = l;
-		dataLen = d;
-		maxn = m;
+	public Queue(int queueLength, int dataLength, int startNum) {
+		len = queueLength;
+		dataLen = dataLength;
 		queue = new int[len];
 		data = new byte[len][dataLen];
 		for (int i = 0; i < len; i++) {
 			queue[i] = -1;
 		}
 		pointer = 0;
-		expected = e;
+		expected = startNum;
 	}
 	
 	public boolean insert(byte[] d) {
-		byte num = d[0];
+		int num = UDPUtils.bytes2Int(d, 0, 2);
 		if (expected == -1) {
-			queue[pointer] = (byte) num;
+			queue[pointer] = num;
 			expected = num;
 			return true;
 		}
-		int tmp = (num + maxn - expected) % maxn;
+		int tmp = num - expected;
 		if (tmp > len) {
 			return false;
 		}
@@ -63,7 +61,7 @@ public class Queue {
 			}
 			pointer = (pointer + 1) % len;
 		}
-		expected = (expected + M + N) % maxn;
+		expected = expected + M + N;
 	}
 	
 	public boolean ready(int M, int N) {

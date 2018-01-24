@@ -60,7 +60,7 @@ public class UDPServer {
 				receivePort = receiveDpk.getPort();//返回接收或发送该数据报文的远程主机端口号。
 				System.out.println("client ip and port: " + receiveAddr + " " + receivePort);
 				//otherwise, get the file content  
-				output.receive(buf); // save data to queue, in which buf[0] is the block number(0~127)
+				output.receive(buf); // save data to queue, in which buf[0~1] is the block number
 				//sendDpk.setData(UDPUtils.successData, 0, UDPUtils.successData.length);  
 				//dsk.send(sendDpk);  
 				//System.out.println("after send success ");  

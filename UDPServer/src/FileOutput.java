@@ -8,14 +8,13 @@ public class FileOutput {
 	private String fileName;
 	private long fileLength;
 	private String fileDir;
-	private int flushSize;
 	private MyThread receiveData;
 	private Queue queue;
 	private FEC encoder;
 	
 	public FileOutput(String dir) {
 		fileDir = dir;
-		queue = new Queue(32, UDPUtils.BUFFER_SIZE, 128, 0);
+		queue = new Queue(UDPUtils.QUEUE_SIZE, UDPUtils.BUFFER_SIZE, 0);
 		encoder = new FEC(5, 1);
 	}
 	
@@ -26,7 +25,6 @@ public class FileOutput {
 		}
 		fileLength = length;
 		fileName = name;
-		flushSize = 0;
 		try {
 			bos = new BufferedOutputStream(new FileOutputStream(fileDir+fileName));
 		} catch (FileNotFoundException e) {
@@ -34,7 +32,7 @@ public class FileOutput {
 			e.printStackTrace();
 		}
 		if (bos != null) {
-			receiveData = new MyThread(10, queue, encoder, flushSize, bos, fileLength, fileName);
+			receiveData = new MyThread(10, queue, encoder, bos, fileLength, fileDir+fileName);
 			receiveData.start();
 			return true;
 		}
@@ -69,19 +67,17 @@ class MyThread extends Thread{
 	private byte[][] encoded;
 	private int dataBlocks;
 	private int encodedBlocks;
-	private int flushSize;
 	private BufferedOutputStream bos;
 	public boolean stop;
 	public int tmpcounter;
 	public String fileName;
 	
-	public MyThread(int time, Queue q, FEC e, int f, BufferedOutputStream b, long len, String name){
+	public MyThread(int time, Queue q, FEC e, BufferedOutputStream b, long len, String name){
 			waitTime = time;
 			queue = q;
 			encoder = e;
 			dataBlocks = encoder.M;
 			encodedBlocks = encoder.N;
-			flushSize = f;
 			bos = b;
 			fileLength = len;
 			length = 0;
@@ -109,10 +105,6 @@ class MyThread extends Thread{
 			}
 			try {
 				bos.write(buf[i], 0, dataLen);
-//				if(++flushSize % 1000 == 0){
-//			        flushSize = 0;
-//			        bos.flush();
-//				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

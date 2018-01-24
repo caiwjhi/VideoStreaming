@@ -16,6 +16,8 @@ public class UDPUtils {
 	/** transfer file byte buffer **/  
 	public static final int BUFFER_SIZE = 50 * 1024;
 	
+	public static final int QUEUE_SIZE = 64;
+	
 	/** controller port  **/  
 	public static final int PORT = 8889;  
 	  

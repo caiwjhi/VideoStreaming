@@ -3,11 +3,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.Arrays;
-import java.security.MessageDigest;
 
 public class TestEncoder extends Thread{
 	public int bufSize = UDPUtils.BUFFER_SIZE;
@@ -15,7 +11,6 @@ public class TestEncoder extends Thread{
 	public FileOutput output;
 	public String fileName = "test.mp3";
 	public int blockNum;
-	public int maxn = 128;
 	
 	public void run(){
 		System.out.println("filename:"+fileName+", md5:"+UDPUtils.getMD5(fileName));
@@ -45,13 +40,13 @@ public class TestEncoder extends Thread{
 		try {
 			while ((readSize = is.read(buf, 0, bufSize)) != -1) {
 				System.arraycopy(buf, 0, D[count], 1, readSize);
-				D[count][0] = (byte) blockNum;
-				blockNum = (blockNum + 1) % maxn;
+				System.arraycopy(UDPUtils.int2Bytes(blockNum, 2), 0, D[count], 0, 2);
+				blockNum ++;
 				count ++;
 				if (count == M) {
-					encoder.encode(D, C, bufSize, 1);
-					C[0][0] = (byte) blockNum;
-					blockNum = (blockNum + 1) % maxn;
+					encoder.encode(D, C, bufSize, 2);
+					System.arraycopy(UDPUtils.int2Bytes(blockNum, 2), 0, C[0], 0, 2);
+					blockNum ++;
 					for (int i = 0; i < M; i++) {
 						if (i == 3)
 							continue;
@@ -74,12 +69,12 @@ public class TestEncoder extends Thread{
 		if (count > 0) {
 			for (int i = count; i < M; i++) {
 				Arrays.fill(D[i], (byte)0);
-				D[i][0] = (byte) blockNum;
-				blockNum = (blockNum + 1) % maxn;
+				System.arraycopy(UDPUtils.int2Bytes(blockNum, 2), 0, D[i], 0, 2);
+				blockNum ++;
 			}
 			encoder.encode(D, C, bufSize, 1);
-			C[0][0] = (byte) blockNum;
-			blockNum = (blockNum + 1) % maxn;
+			System.arraycopy(UDPUtils.int2Bytes(blockNum, 2), 0, C[0], 0, 2);
+			blockNum ++;
 			for (int i = 0; i < M; i++) {
 				output.receive(D[i]);
 			}
