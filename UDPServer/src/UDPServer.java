@@ -36,11 +36,16 @@ public class UDPServer {
 			while((readSize = receiveDpk.getLength()) != 0){  
 				// validate client send exit flag    
 				if(UDPUtils.isEqualsByteArray(UDPUtils.exitData, buf, readSize)){  
-					System.out.println("server exit ...");  
+					System.out.println("client want to exit ...");  
 					// send exit flag   
-					sendDpk.setData(UDPUtils.exitData, 0, UDPUtils.exitData.length);  
-					dsk.send(sendDpk);  
-					break;  
+					if((requireNum = output.missing()) == -1){
+						System.out.println("server " + sendDpk.getAddress() + " " + sendDpk.getPort() + " " + receivePort);
+						sendDpk.setPort(receivePort);//如果不加这一句，断开就变了，不知道为什么？
+						sendDpk.setData(UDPUtils.exitData, 0, UDPUtils.exitData.length);  
+						dsk.send(sendDpk);  
+						System.out.println("bye server");
+						break;  
+					}
 				}
 				if(UDPUtils.hasMark(UDPUtils.fileInfo, buf)){
 					//get the file name
@@ -49,7 +54,7 @@ public class UDPServer {
 					System.out.println("get file name : " + fileName);
 					fileSize = UDPUtils.getFileSize(buf);
 					System.out.println("file size: " + fileSize);
-					System.out.println("nums " + new String(UDPUtils.getFileNums(buf)));
+					System.out.println("nums " + UDPUtils.getFileNums(buf));
 					output.open(fileName, fileSize); // open thread to save data
 					System.out.println("client ip and port: " + receiveAddr + " " + receivePort);
 					sendDpk.setData(UDPUtils.successData, 0, UDPUtils.successData.length);
@@ -76,17 +81,18 @@ public class UDPServer {
 					dsk.send(sendMissDpk);
 					System.out.println("after send missing success ");
 					int missingCount = 0; // 计算要求重发后有多少收到的不是想要的缺失数据。
-					while(missingCount <= 5){
+					while(true){
+						if(missingCount >= 30)
+							break;
 						readCount = UDPUtils.bytes2Int(buf, 0, 2);
 						System.out.println("receive count of "+ ( readCount ) +" !");  
 						if(readCount == requireNum){//缺失的已经补上，则继续接收其他包
 							output.receive(buf); 
 							break;
 						}else{
-							if(missingCount >= 5){
+							if(missingCount % 5 == 0){
 								System.out.println("!!!! resend  again !!!!");
 								dsk.send(sendMissDpk);
-								missingCount = 0;
 								//break;
 							}
 						}
@@ -98,7 +104,6 @@ public class UDPServer {
 				}
 				readCount = UDPUtils.bytes2Int(buf, 0, 2);
 				System.out.println("receive count of "+ ( readCount ) +" !");  
-				//System.out.println("buf size " +buf.length);
 				output.receive(buf); // save data to queue, in which buf[0~1] is the block number
 				//sendDpk.setData(UDPUtils.successData, 0, UDPUtils.successData.length);  
 				//dsk.send(sendDpk);  

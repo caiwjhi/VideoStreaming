@@ -411,9 +411,11 @@ public class MainActivity extends Activity {
             	byte[] nums = new byte[2];
             	nums[0] = 0;
             	nums[1] = 0;
-            	String msg = nums[0] + nums[1] + "  " + fileSize + "  ";//头部信息，编号+两个空格+大小+两个空格；两个空格是分隔符
+            	byte[] fSize = UDPUtils.int2Bytes(fileSize, 4);
+            	//String msg = nums[0] + nums[1] + "  " + fileSize + "  ";//头部信息，编号+两个空格+大小+两个空格；两个空格是分隔符
             	Log.i("wenjing", "file size: " + fileSize/50/1024);
-    			byte[] data = (msg + commond).getBytes();
+    			byte[] data =  UDPUtils.byteMerger(nums, fSize);
+    			data = UDPUtils.byteMerger(data, commond.getBytes());
     			//创建数据报
     	        DatagramPacket packet = new DatagramPacket(data, data.length, InetAddress.getByName(serverUrl), serverPort);//发送报文到指定地址
     	        //创建DatagramSocket，实现数据发送和接收
@@ -577,22 +579,26 @@ public class MainActivity extends Activity {
                 receiveDpk.setData(receiveBuf,0,receiveBuf.length);
                 dsk.receive(receiveDpk);
                 // byte[] receiveData = dpk.getData();
-                if(!UDPUtils.isEqualsByteArray(UDPUtils.exitData, receiveBuf, dpk.getLength())){
+                if(!UDPUtils.isEqualsByteArray(UDPUtils.exitData, receiveBuf, receiveDpk.getLength())){
                     Log.i("wenjing", "client Resend exit message ....");
                     //dsk.send(dpk);
                 }else
                     break;
             }
             }
+            Log.i("wenjing", "where ???");
         }catch (Exception e) {
         	Log.e("wenjing", "exception?? "+ e);
             e.printStackTrace();
         } finally{
             try {
+            	Log.i("wenjing", "finally");
                 if(is != null)
                     is.close();
-                if(dsk != null)
+                if(dsk != null){
                     dsk.close();
+                    Log.i("wenjing", "close socket");
+                }
             } catch (IOException e) {
             	Log.e("wenjing", "exception  22" + e);
             }

@@ -112,20 +112,16 @@ public class UDPUtils {
 		return res;*/
 		String string = new String(buf).trim();
 		String[] strings = string.split("  ");
-		return strings[3];
+		return strings[1];
 	}
 	//get file size, 目前仅适用于处理commond命令数据包
 	public static int getFileSize(byte[] buf){
-		String string = new String(buf).trim();
-		System.out.println("string len " + string + " " +string.length());
-		String[] strings = string.split("  ");
-		return Integer.valueOf(strings[1]);
+		int ans = bytes2Int(buf, 2, 4);
+		return ans;
 	}
 	//get the identity num of a buf,return a byte[] whose length is 2;
-	public static byte[] getFileNums(byte[] buf){
-		byte[] ans = new byte[2];
-		ans[0] = buf[0];
-		ans[1] = buf[1];
+	public static int getFileNums(byte[] buf){
+		int ans = bytes2Int(buf, 0, 2);
 		return ans;
 	}
 	
