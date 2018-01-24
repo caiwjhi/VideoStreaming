@@ -14,7 +14,7 @@ public class FileOutput {
 	
 	public FileOutput(String dir) {
 		fileDir = dir;
-		queue = new Queue(UDPUtils.QUEUE_SIZE, UDPUtils.BUFFER_SIZE, 0);
+		queue = new Queue(UDPUtils.QUEUE_SIZE, UDPUtils.BUFFER_SIZE, 1);
 		encoder = new FEC(5, 1);
 	}
 	
