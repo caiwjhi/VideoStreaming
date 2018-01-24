@@ -25,15 +25,21 @@ public class FEC {
 		}
 	}
 
-	public void decode(byte[][] D, byte[][] C, int[] ready, int len) {
+	public boolean decode(byte[][] D, byte[][] C, int[] ready, int len) {
+		boolean flag = true;
 		int num = -1;
+		int wrong = 0;
 		for (int i = 0; i < M; i++) {
 			if (ready[i] == 0) {
 				num = i;
+				wrong++;
 			}
 		}
 		if (num == -1) {
-			return;
+			return flag;
+		}else if (wrong > 1){
+//			System.out.println("wrong:"+wrong);
+			flag = false;
 		}
 		short tmp;
 		for (int i = 0; i < len; i++){
@@ -45,6 +51,7 @@ public class FEC {
 			}
 			D[num][i] = (byte)tmp;
 		}
+		return flag;
 	}
 	
 	public void print(byte[][] x) {

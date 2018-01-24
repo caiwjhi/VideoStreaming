@@ -5,8 +5,9 @@ public class Queue {
 	private int dataLen;
 	private int[] queue;
 	private byte[][] data;
-	private int pointer;
+	public int pointer;
 	private int expected;
+	private int offset = 2;
 	
 	public Queue(int queueLength, int dataLength, int startNum) {
 		len = queueLength;
@@ -36,11 +37,12 @@ public class Queue {
 			return false;
 		}
 		queue[now] = num;
-		System.arraycopy(d, 1, data[now], 0, dataLen);
+		System.arraycopy(d, offset, data[now], 0, dataLen);
 		return true;
 	}
 	
 	public void output(byte[][] D, byte[][] C, int[] ready, int M, int N) {
+//		System.out.print("pointer from:"+pointer);
 		for (int i = 0; i < M; i++) {
 			if (queue[pointer] != -1) {
 				queue[pointer] = -1;
@@ -62,20 +64,17 @@ public class Queue {
 			pointer = (pointer + 1) % len;
 		}
 		expected = expected + M + N;
+//		System.out.println(" to "+pointer);
 	}
 	
-	public boolean ready(int M, int N) {
+	public int ready(int M, int N) {
 		int count = 0;
 		for (int i = 0; i < M+N; i++) {
 			if (queue[(pointer+i)%len] != -1) {
 				count ++;
 			}
 		}
-		if (count >= M) {
-			return true;
-		} else {
-			return false;
-		}
+		return count;
 	}
 	
 	public void clear() {

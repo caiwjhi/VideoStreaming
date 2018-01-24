@@ -40,6 +40,8 @@ public class FileOutput {
 	}
 	
 	public void receive(byte[] buf) {
+//		System.out.print("insert:"+UDPUtils.bytes2Int(buf, 0, 2));
+//		System.out.println(", data:"+buf[2]+','+buf[3]);
 		queue.insert(buf);
 	}
 	
@@ -59,6 +61,7 @@ public class FileOutput {
 
 class MyThread extends Thread{
 	private int waitTime;
+	private int counter;
 	private long fileLength;
 	private long length;
 	private Queue queue;
@@ -73,28 +76,30 @@ class MyThread extends Thread{
 	public String fileName;
 	
 	public MyThread(int time, Queue q, FEC e, BufferedOutputStream b, long len, String name){
-			waitTime = time;
-			queue = q;
-			encoder = e;
-			dataBlocks = encoder.M;
-			encodedBlocks = encoder.N;
-			bos = b;
-			fileLength = len;
-			length = 0;
-			stop = false;
-			tmpcounter = 0;
-			fileName = name;
-			data = new byte[dataBlocks][UDPUtils.BUFFER_SIZE];
-			encoded = new byte[encodedBlocks][UDPUtils.BUFFER_SIZE];
+		waitTime = time;
+		queue = q;
+		encoder = e;
+		dataBlocks = encoder.M;
+		encodedBlocks = encoder.N;
+		bos = b;
+		fileLength = len;
+		length = 0;
+		stop = false;
+		tmpcounter = 0;
+		fileName = name;
+		data = new byte[dataBlocks][UDPUtils.BUFFER_SIZE];
+		encoded = new byte[encodedBlocks][UDPUtils.BUFFER_SIZE];
 	}
 	
 	public void writeData(byte[][] buf, long len) {
+//		System.out.print("write:");
 		long count = 0;
 		int dataLen = buf[0].length;
 		for (int i = 0; i < buf.length; i++) {
 			if (len - count < dataLen) {
 				try {
 					bos.write(buf[i], 0, (int) (len - count));
+//					System.out.print(buf[i][0]+","+buf[i][1]+". ");
 					bos.flush();
 					bos.close();
 					stop = true;
@@ -105,6 +110,7 @@ class MyThread extends Thread{
 			}
 			try {
 				bos.write(buf[i], 0, dataLen);
+//				System.out.print(buf[i][0]+","+buf[i][1]+". ");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -117,46 +123,54 @@ class MyThread extends Thread{
 				e.printStackTrace();
 			}
 		}
+//		System.out.println();
 	}
 	
 	public void write(int[] ready) {
-			queue.output(data, encoded, ready, dataBlocks, encodedBlocks);
-			encoder.decode(data, encoded, ready, UDPUtils.BUFFER_SIZE);
-			long len = dataBlocks * UDPUtils.BUFFER_SIZE;
-			if (fileLength-length < dataBlocks * UDPUtils.BUFFER_SIZE) {
-				len = fileLength-length;
-			}
-			writeData(data, len);
-			length += len;
-			tmpcounter++;
+		queue.output(data, encoded, ready, dataBlocks, encodedBlocks);
+		boolean flag = encoder.decode(data, encoded, ready, UDPUtils.BUFFER_SIZE);
+		if (!flag) {
+			System.out.println("decode fail");
+		}
+		long len = dataBlocks * UDPUtils.BUFFER_SIZE;
+		if (fileLength-length < dataBlocks * UDPUtils.BUFFER_SIZE) {
+			len = fileLength-length;
+		}
+		writeData(data, len);
+		length += len;
+		tmpcounter++;
 //    		System.out.println("receive "+tmpcounter+" groups, length="+length+", fileLength="+fileLength);
 	}
 	
 	public void run() {
-			System.out.println("Thread start");
-			int counter = 0;
-			int[] ready = new int[dataBlocks+encodedBlocks];
-			while (!stop) {
-				if (queue.ready(dataBlocks, encodedBlocks)) {
+		System.out.println("Thread start");
+		counter = 0;
+		int[] ready = new int[dataBlocks+encodedBlocks];
+		int num = 0;
+		while (!stop) {
+			num = queue.ready(dataBlocks, encodedBlocks);
+			if (num >= dataBlocks) {
+				write(ready);
+				counter = 0;
+			} else {
+				if (num > 0)
+					counter++;
+				if (counter >= 10) {
+					System.out.println("receive fail");
 					write(ready);
 					counter = 0;
-				} else {
-					counter++;
-					if (counter >= 10) {
-						write(ready);
-						counter = 0;
-						continue;
-					}
-					try {
+					continue;
+				}
+				try {
 					sleep(waitTime);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				}
 			}
-			System.out.println("length:"+length+", groups:"+tmpcounter);
-			System.out.println("filename:"+fileName+", md5:"+UDPUtils.getMD5(fileName));
-			System.out.println("Thread stop");
+		}
+		System.out.println("length:"+length+", groups:"+tmpcounter);
+		System.out.println("filename:"+fileName+", md5:"+UDPUtils.getMD5(fileName));
+		System.out.println("Thread stop");
 	}
 }
 

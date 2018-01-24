@@ -11,6 +11,7 @@ public class TestEncoder extends Thread{
 	public FileOutput output;
 	public String fileName = "test.mp3";
 	public int blockNum;
+	public int offset = 2;
 	
 	public void run(){
 		System.out.println("filename:"+fileName+", md5:"+UDPUtils.getMD5(fileName));
@@ -32,24 +33,26 @@ public class TestEncoder extends Thread{
 		int readSize;
 		int M = 5;
 		int N = 1;
-		byte D[][] = new byte[M][bufSize+1];
-		byte C[][] = new byte[N][bufSize+1];
+		byte D[][] = new byte[M][bufSize+offset];
+		byte C[][] = new byte[N][bufSize+offset];
 		int count = 0;
 		encoder = new FEC(M, N);
 		System.out.println("begin");
 		try {
 			while ((readSize = is.read(buf, 0, bufSize)) != -1) {
-				System.arraycopy(buf, 0, D[count], 1, readSize);
-				System.arraycopy(UDPUtils.int2Bytes(blockNum, 2), 0, D[count], 0, 2);
+//				if (readSize != buf.length)
+//					System.out.println("read "+readSize+" bytes");
+				System.arraycopy(buf, 0, D[count], offset, readSize);
+				System.arraycopy(UDPUtils.int2Bytes(blockNum, offset), 0, D[count], 0, offset);
 				blockNum ++;
 				count ++;
 				if (count == M) {
 					encoder.encode(D, C, bufSize, 2);
-					System.arraycopy(UDPUtils.int2Bytes(blockNum, 2), 0, C[0], 0, 2);
+					System.arraycopy(UDPUtils.int2Bytes(blockNum, offset), 0, C[0], 0, offset);
 					blockNum ++;
 					for (int i = 0; i < M; i++) {
-						if (i == 3)
-							continue;
+//						if (i == 3)
+//							continue;
 						output.receive(D[i]);
 					}
 					for (int i = 0; i < N; i++) {
@@ -58,7 +61,7 @@ public class TestEncoder extends Thread{
 					count = 0;
 					tmpcounter++;
 //					System.out.println("send "+tmpcounter+" groups");
-					sleep(10);
+					sleep(100);
 				}
 			}
 		} catch (IOException e) {
@@ -69,11 +72,11 @@ public class TestEncoder extends Thread{
 		if (count > 0) {
 			for (int i = count; i < M; i++) {
 				Arrays.fill(D[i], (byte)0);
-				System.arraycopy(UDPUtils.int2Bytes(blockNum, 2), 0, D[i], 0, 2);
+				System.arraycopy(UDPUtils.int2Bytes(blockNum, offset), 0, D[i], 0, offset);
 				blockNum ++;
 			}
 			encoder.encode(D, C, bufSize, 1);
-			System.arraycopy(UDPUtils.int2Bytes(blockNum, 2), 0, C[0], 0, 2);
+			System.arraycopy(UDPUtils.int2Bytes(blockNum, offset), 0, C[0], 0, offset);
 			blockNum ++;
 			for (int i = 0; i < M; i++) {
 				output.receive(D[i]);
