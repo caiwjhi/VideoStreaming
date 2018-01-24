@@ -418,6 +418,13 @@ public class MainActivity extends Activity {
         byte[] receiveBuf = new byte[1];
         Log.i("wenjing", "in send file....");
         //RandomAccessFile accessFile = null;
+        FEC encoder;
+        int M = 5;
+		int N = 1;
+		byte D[][] = new byte[M][UDPUtils.BUFFER_SIZE+2];
+		byte C[][] = new byte[N][UDPUtils.BUFFER_SIZE+2];//2是放编号的位置大小
+		int count = 0;
+		encoder = new FEC(M, N);
         File file = null;
         FileInputStream is = null; 
         DatagramPacket dpk = null;
@@ -452,11 +459,25 @@ public class MainActivity extends Activity {
             byte[] nums = new byte[2];//编号，identity number of each package
             while((readSize = is.read(buf,0,buf.length)) != -1){//之前是accessFile
                 System.out.println("readSize:"+readSize);
+                System.arraycopy(buf, 0, D[count], 2, readSize);
                 sendCount++;
                 nums = UDPUtils.int2Bytes(sendCount, 2);
                 byte[] sendData = UDPUtils.byteMerger(nums, buf);
-                dpk.setData(sendData, 0, sendData.length);
+                D[count][0] = nums[0];
+				D[count][1] = nums[1];
+				count ++;
+				dpk.setData(sendData, 0, sendData.length);
                 dsk.send(dpk);
+				if (count == M) {//另外发送校验包
+					encoder.encode(D, C, UDPUtils.BUFFER_SIZE, 2);
+					sendCount++;
+					nums = UDPUtils.int2Bytes(sendCount, 2);
+					C[0][0] = nums[0];
+					C[0][1] = nums[1];
+					dpk.setData(C[0], 0, C[0].length);
+	                dsk.send(dpk);
+					count = 0;
+				}
                 // wait server response
                 /*{
                     while(true){
