@@ -570,6 +570,30 @@ public class MainActivity extends Activity {
 
 				Log.i("wenjing", "send count of "+(sendCount)+"!");
 			}
+			if (count > 0) { // padding 0 to the end of file
+				for (int i = count; i < M; i++) {
+					resendMissData(dsk);
+					Arrays.fill(buf, (byte)0);
+					Arrays.fill(D[i], (byte)0);
+					sendCount++;
+					fileBuf[sendCount] = buf;
+					nums = UDPUtils.int2Bytes(sendCount, 2);
+					byte[] sendData = UDPUtils.byteMerger(nums, buf);
+					D[i][0] = nums[0];
+					D[i][1] = nums[1];
+					dpk.setData(sendData, 0, sendData.length);
+					dsk.send(dpk);
+				}
+				encoder.encode(D, C, UDPUtils.BUFFER_SIZE, 2);
+				for (int i = 0; i < N; i++) {
+					sendCount++;
+					nums = UDPUtils.int2Bytes(sendCount, 2);
+					C[i][0] = nums[0];
+					C[i][1] = nums[1];
+					dpk.setData(C[i], 0, C[i].length);
+					dsk.send(dpk);
+				}
+			}
 			//Toast.makeText(MainActivity.this, "finish send this file", Toast.LENGTH_SHORT).show();
 			Log.i("wenjing", "finish the send file..");
 		 // send exit wait server response
