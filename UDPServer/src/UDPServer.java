@@ -2,12 +2,15 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
+import com.sun.glass.ui.TouchInputSupport;
+
 public class UDPServer {  
 	  
     private static final String SAVE_FILE_DIR = "D:/wenjing/teachingClass/saveFiles/";  
 	private static String fileName = "default.mkv";  
 	private static FileOutput output;
 	private static int fileSize = 0;
+	private static int clientPort = UDPUtils.CLIENT_PORT;
 	
 	public static void main(String[] args) {  
 		System.out.println("Streaming server..."); 
@@ -32,7 +35,7 @@ public class UDPServer {
 			int readCount = 0;  
 			byte[] nums = new byte[2];//for resend , missing identity num
 			sendDpk = new DatagramPacket(buf, buf.length, receiveAddr, receivePort);//发送报文，发送到指定地址的指定端口
-			sendMissDpk = new DatagramPacket(missingData, missingData.length, receiveAddr, UDPUtils.CLIENT_PORT);
+			sendMissDpk = new DatagramPacket(missingData, missingData.length, receiveAddr, clientPort);
 			while((readSize = receiveDpk.getLength()) != 0){  
 				// validate client send exit flag    
 				if(UDPUtils.isEqualsByteArray(UDPUtils.exitData, buf, readSize)){  
@@ -40,15 +43,24 @@ public class UDPServer {
 					// send exit flag   
 					if((requireNum = output.missing()) == -1){
 						System.out.println("server " + sendDpk.getAddress() + " " + sendDpk.getPort() + " " + receivePort);
-						sendDpk.setPort(receivePort);//如果不加这一句，断开就变了，不知道为什么？
+						sendDpk.setPort(receivePort);//如果不加这一句，端口就变了，不知道为什么？
 						sendDpk.setData(UDPUtils.exitData, 0, UDPUtils.exitData.length);  
 						dsk.send(sendDpk);  
 						System.out.println("bye server");
 						break;  
 					}
 				}
+				if(UDPUtils.isEqualsByteArray(UDPUtils.missingNum, buf, readSize)){
+				    clientPort = receiveDpk.getPort();
+					System.out.println("get the buf from the client missing !!!!!!!");
+					System.out.println("client " + receiveDpk.getAddress() + " " + receiveDpk.getPort());
+					receiveDpk.setData(buf,0, buf.length);  
+					dsk.receive(receiveDpk); 
+					continue;
+				}
 				if(UDPUtils.hasMark(UDPUtils.fileInfo, buf)){
 					//get the file name
+					receivePort = receiveDpk.getPort();
 					System.out.println("get buf: " + new String(buf));
 					fileName = UDPUtils.getFileName(buf, UDPUtils.fileInfo.length);
 					System.out.println("get file name : " + fileName);
@@ -57,6 +69,7 @@ public class UDPServer {
 					System.out.println("nums " + UDPUtils.getFileNums(buf));
 					output.open(fileName, fileSize); // open thread to save data
 					System.out.println("client ip and port: " + receiveAddr + " " + receivePort);
+					sendDpk.setPort(receivePort);
 					sendDpk.setData(UDPUtils.successData, 0, UDPUtils.successData.length);
 					dsk.send(sendDpk);
 					System.out.println("after send success ");
@@ -71,40 +84,45 @@ public class UDPServer {
 				receivePort = receiveDpk.getPort();//返回接收或发送该数据报文的远程主机端口号。
 				System.out.println("client ip and port: " + receiveAddr + " " + receivePort);
 				//otherwise, get the file content  
+				readCount = UDPUtils.bytes2Int(buf, 0, 2);
+				System.out.println("receive count of "+ ( readCount ) +" !");  
+				output.receive(buf); // save data to queue, in which buf[0~1] is the block number
 				
 				if ((requireNum = output.missing()) != -1) {
 					//send ack
 					System.out.println("missing and resend " + requireNum);
+					if(readCount != requireNum){
 					nums = UDPUtils.int2Bytes(requireNum, 2);
 					missingData = UDPUtils.byteMerger(UDPUtils.missingNum, nums);
+					sendMissDpk.setPort(clientPort);
 					sendMissDpk.setData(missingData, 0, missingData.length);
-					dsk.send(sendMissDpk);
+					System.out.println("server " + sendMissDpk.getAddress() + " " + sendMissDpk.getPort() + " " + UDPUtils.CLIENT_PORT);
+					//dsk.send(sendMissDpk);
 					System.out.println("after send missing success ");
-					int missingCount = 0; // 计算要求重发后有多少收到的不是想要的缺失数据。
+					int missingCount = 1; // 计算要求重发后有多少收到的不是想要的缺失数据。
 					while(true){
-						if(missingCount >= 30)
+						receiveDpk.setData(buf,0, buf.length);  
+						dsk.receive(receiveDpk);
+						if(missingCount >= 100)
 							break;
 						readCount = UDPUtils.bytes2Int(buf, 0, 2);
-						System.out.println("receive count of "+ ( readCount ) +" !");  
+						output.receive(buf); //收到的包都要receive；
+						//System.out.println("receive count of "+ ( readCount ) +" !");  
 						if(readCount == requireNum){//缺失的已经补上，则继续接收其他包
-							output.receive(buf); 
+							System.out.println("==============================");
 							break;
 						}else{
-							if(missingCount % 5 == 0){
+							if(missingCount % 50 == 0){
 								System.out.println("!!!! resend  again !!!!");
 								dsk.send(sendMissDpk);
 								//break;
 							}
-						}
-						output.receive(buf); //收到其他的包则正常处理；
-						receiveDpk.setData(buf,0, buf.length);  
-						dsk.receive(receiveDpk);
+						}	
 						missingCount++;
 					}
+					}
 				}
-				readCount = UDPUtils.bytes2Int(buf, 0, 2);
-				System.out.println("receive count of "+ ( readCount ) +" !");  
-				output.receive(buf); // save data to queue, in which buf[0~1] is the block number
+				
 				//sendDpk.setData(UDPUtils.successData, 0, UDPUtils.successData.length);  
 				//dsk.send(sendDpk);  
 				//System.out.println("after send success ");  
