@@ -29,7 +29,8 @@ public class Queue {
 			return true;
 		}
 		int tmp = num - expected;
-		if (tmp > len) {
+		if (tmp > len || tmp < 0) {
+			System.out.println("num "+num+" out of queue with pointer "+ pointer);
 			return false;
 		}
 		int now = (pointer + tmp) % len;
@@ -42,34 +43,36 @@ public class Queue {
 	}
 	
 	public void output(byte[][] D, byte[][] C, int[] ready, int M, int N) {
-//		System.out.print("pointer from:"+pointer);
+//		printQueue(30);
+		int tmpPointer = pointer;
 		for (int i = 0; i < M; i++) {
-			if (queue[pointer] != -1) {
-				queue[pointer] = -1;
-				System.arraycopy(data[pointer], 0, D[i], 0, dataLen);
+			if (queue[tmpPointer] != -1) {
+				queue[tmpPointer] = -1;
+				System.arraycopy(data[tmpPointer], 0, D[i], 0, dataLen);
 				ready[i] = 1;
 			} else {
 				ready[i] = 0;
 			}
-			pointer = (pointer + 1) % len;
+			tmpPointer = (tmpPointer + 1) % len;
 		}
 		for (int i = 0; i < N; i++) {
-			if (queue[pointer] != -1) {
-				queue[pointer] = -1;
-				System.arraycopy(data[pointer], 0, C[i], 0, dataLen);
+			if (queue[tmpPointer] != -1) {
+				queue[tmpPointer] = -1;
+				System.arraycopy(data[tmpPointer], 0, C[i], 0, dataLen);
 				ready[i] = 1;
 			} else {
 				ready[i] = 0;
 			}
-			pointer = (pointer + 1) % len;
+			tmpPointer = (tmpPointer + 1) % len;
 		}
+		pointer = tmpPointer;
 		expected = expected + M + N;
-//		System.out.println(" to "+pointer);
+//		printQueue(30);
 	}
 	
-	public int ready(int M, int N) {
+	public int ready(int M, int N, int offset) {
 		int count = 0;
-		for (int i = 0; i < M+N; i++) {
+		for (int i = offset; i < M+N+offset; i++) {
 			if (queue[(pointer+i)%len] != -1) {
 				count ++;
 			}
@@ -84,6 +87,13 @@ public class Queue {
 			}
 		}
 		return -1;
+	}
+	
+	public void printQueue(int n) {
+		for (int i = 0; i < n; i++) {
+			System.out.print(queue[(pointer+i)%len]+", ");
+		}
+		System.out.println();
 	}
 	
 	public void clear() {
