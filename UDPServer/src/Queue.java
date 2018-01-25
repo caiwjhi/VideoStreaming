@@ -30,7 +30,7 @@ public class Queue {
 		}
 		int tmp = num - expected;
 		if (tmp > len || tmp < 0) {
-			System.out.println("num "+num+" out of queue with pointer "+ pointer);
+			System.out.println("num "+num+" out of queue with pointer "+ pointer+" and expected "+expected);
 			return false;
 		}
 		int now = (pointer + tmp) % len;

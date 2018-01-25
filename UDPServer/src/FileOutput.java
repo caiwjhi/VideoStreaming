@@ -15,7 +15,7 @@ public class FileOutput {
 	public FileOutput(String dir) {
 		fileDir = dir;
 		queue = new Queue(UDPUtils.QUEUE_SIZE, UDPUtils.BUFFER_SIZE, 1);
-		encoder = new FEC(5, 1);
+		encoder = new FEC(UDPUtils.DATA_BLOCK, UDPUtils.ENCODED_BLOCK);
 	}
 	
 	public boolean open(String name, long length) {
@@ -40,8 +40,6 @@ public class FileOutput {
 	}
 	
 	public void receive(byte[] buf) {
-//		System.out.print("insert:"+UDPUtils.bytes2Int(buf, 0, 2));
-//		System.out.println(", data:"+buf[2]+','+buf[3]);
 		queue.insert(buf);
 	}
 	
@@ -101,14 +99,12 @@ class MyThread extends Thread{
 	}
 	
 	public void writeData(byte[][] buf, long len) {
-//		System.out.print("write:");
 		long count = 0;
 		int dataLen = buf[0].length;
 		for (int i = 0; i < buf.length; i++) {
 			if (len - count < dataLen) {
 				try {
 					bos.write(buf[i], 0, (int) (len - count));
-//					System.out.print(buf[i][0]+","+buf[i][1]+". ");
 					bos.flush();
 					bos.close();
 					stop = true;
@@ -119,7 +115,6 @@ class MyThread extends Thread{
 			}
 			try {
 				bos.write(buf[i], 0, dataLen);
-//				System.out.print(buf[i][0]+","+buf[i][1]+". ");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -132,7 +127,6 @@ class MyThread extends Thread{
 				e.printStackTrace();
 			}
 		}
-//		System.out.println();
 	}
 	
 	public void write(int[] ready) {
@@ -164,10 +158,9 @@ class MyThread extends Thread{
 				if (counter > 10) {
 					missing = queue.getFirstMissing(dataBlocks, encodedBlocks);
 					counter = 0;
-//					continue;
 					System.out.println("receive fail, missing:"+missing);
-					queue.printQueue(30);
-					break;
+//					queue.printQueue(30);
+//					break;
 				}
 				try {
 					sleep(sleepTime);

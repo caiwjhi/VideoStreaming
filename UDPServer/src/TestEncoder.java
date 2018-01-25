@@ -16,7 +16,7 @@ public class TestEncoder extends Thread{
 	public void run(){
 		System.out.println("filename:"+fileName+", md5:"+UDPUtils.getMD5(fileName));
 		File f = new File(fileName);
-		System.out.println("length:"+f.length()+", groups:"+(f.length()/(UDPUtils.BUFFER_SIZE*5)+1));
+		System.out.println("length:"+f.length()+", groups:"+(f.length()/(UDPUtils.BUFFER_SIZE*UDPUtils.DATA_BLOCK)+1));
 		output = new FileOutput("output/");
 		output.open(fileName, f.length());
 		blockNum = 1;
@@ -31,8 +31,8 @@ public class TestEncoder extends Thread{
 		}
 		byte buf[] = new byte[bufSize];
 		int readSize;
-		int M = 5;
-		int N = 1;
+		int M = 10;
+		int N = 2;
 		byte D[][] = new byte[M][bufSize+offset];
 		byte C[][] = new byte[N][bufSize+offset];
 		int count = 0;
@@ -47,10 +47,12 @@ public class TestEncoder extends Thread{
 				count ++;
 				if (count == M) {
 					encoder.encode(D, C, bufSize, 2);
-					System.arraycopy(UDPUtils.int2Bytes(blockNum, offset), 0, C[0], 0, offset);
-					blockNum ++;
+					for (int i = 0; i < N; i++) {
+						System.arraycopy(UDPUtils.int2Bytes(blockNum, offset), 0, C[i], 0, offset);
+						blockNum ++;
+					}
 					for (int i = 0; i < M; i++) {
-						if (i == 2)
+						if (i == 2 || i == 3)
 							continue;
 						output.receive(D[i]);
 					}
@@ -59,10 +61,10 @@ public class TestEncoder extends Thread{
 					}
 					count = 0;
 					tmpcounter++;
-					if (tmpcounter % 10 == 0)
+					if (tmpcounter % 5 == 0)
 						sleep(20);
 //					System.out.println("send "+tmpcounter+" groups");
-//					sleep(100);
+//					sleep(10);
 				}
 			}
 		} catch (IOException e) {
@@ -78,8 +80,10 @@ public class TestEncoder extends Thread{
 				blockNum ++;
 			}
 			encoder.encode(D, C, bufSize, 1);
-			System.arraycopy(UDPUtils.int2Bytes(blockNum, offset), 0, C[0], 0, offset);
-			blockNum ++;
+			for (int i = 0; i < N; i++) {
+				System.arraycopy(UDPUtils.int2Bytes(blockNum, offset), 0, C[i], 0, offset);
+				blockNum ++;
+			}
 			for (int i = 0; i < M; i++) {
 				output.receive(D[i]);
 			}

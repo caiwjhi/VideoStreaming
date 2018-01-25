@@ -11,7 +11,6 @@ public class FEC {
 		N = encodedBlockNum;
 		calc = new Calc();
 		generateGF();
-//		 generatePolynomial();
 	}
 	
 	private void generateGF() {
@@ -55,14 +54,10 @@ public class FEC {
 					y = i;
 			}
 		}
-//		System.out.println("x="+x+",y="+y);
 		if (x == -1) { // no error
 			return;
 		}
 		if (y == -1) { // 1 error
-//			for (int i = 0; i <= M; i++)
-//				System.out.print(ready[i]+", ");
-//			System.out.println();
 			if (ready[M] != 0) {
 				for (int i = 0; i < len; i++){
 					D[x][i] = C[0][i];
@@ -97,11 +92,10 @@ public class FEC {
 				}
 			}
 			// solve matrix V' * D' = R
-			for (int i = 0; i < M; i++) {
-				if (ready[i] == 0) {
-					System.arraycopy(R[0], 0, D[i], 0, len);
-					break;
-				}
+			byte tmp = (byte) (V[1][x] ^ V[1][y]);
+			for (int digit = 0; digit < len; digit++) {
+				D[x][digit] = calc.div((byte)(R[1][digit] ^ calc.mul(V[1][y], R[0][digit])), tmp);
+				D[y][digit] = calc.div((byte)(R[1][digit] ^ calc.mul(V[1][x], R[0][digit])), tmp);
 			}
 		}
 	}
@@ -129,10 +123,12 @@ public class FEC {
 //		encoder.encode(D, C, 1, 0);
 //		encoder.print(D);
 //		encoder.print(C);
-//		D[3][0] = 0;
+//		D[0][0] = 0;
+//		D[4][0] = 0;
 //		int[] ready = new int[12];
 //		Arrays.fill(ready, 1);
-//		ready[3] = 0;
+//		ready[0] = 0;
+//		ready[4] = 0;
 //		encoder.decode(D, C, ready, 1);
 //		encoder.print(D);
 //	}
