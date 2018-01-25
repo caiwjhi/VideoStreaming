@@ -59,9 +59,9 @@ public class Queue {
 			if (queue[tmpPointer] != -1) {
 				queue[tmpPointer] = -1;
 				System.arraycopy(data[tmpPointer], 0, C[i], 0, dataLen);
-				ready[i] = 1;
+				ready[M+i] = 1;
 			} else {
-				ready[i] = 0;
+				ready[M+i] = 0;
 			}
 			tmpPointer = (tmpPointer + 1) % len;
 		}

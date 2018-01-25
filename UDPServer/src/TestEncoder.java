@@ -4,13 +4,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Date;
 
 public class TestEncoder extends Thread{
 	public int bufSize = UDPUtils.BUFFER_SIZE;
 	public FEC encoder;
 	public FileOutput output;
-	public String fileName = "test.mp3";
+	public String fileName = "test.wav";
 	public int blockNum;
 	public int offset = 2;
 	
@@ -60,8 +59,8 @@ public class TestEncoder extends Thread{
 					}
 					count = 0;
 					tmpcounter++;
-					if (tmpcounter % 5 == 0)
-						sleep(5);
+					if (tmpcounter % 10 == 0)
+						sleep(20);
 //					System.out.println("send "+tmpcounter+" groups");
 //					sleep(100);
 				}
@@ -82,8 +81,6 @@ public class TestEncoder extends Thread{
 			System.arraycopy(UDPUtils.int2Bytes(blockNum, offset), 0, C[0], 0, offset);
 			blockNum ++;
 			for (int i = 0; i < M; i++) {
-				if (i == 2)
-					continue;
 				output.receive(D[i]);
 			}
 			for (int i = 0; i < N; i++) {

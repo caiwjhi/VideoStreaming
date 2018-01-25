@@ -46,7 +46,9 @@ public class FileOutput {
 	}
 	
 	public int missing() {
-		return receiveData.missing;
+		int tmp = receiveData.missing;
+		receiveData.missing = -1;
+		return tmp;
 	}
 	
 	public void close() {
@@ -159,7 +161,7 @@ class MyThread extends Thread{
 			} else {
 				if (num > 0)
 					counter++;
-				if (counter > 20) {
+				if (counter > 10) {
 					missing = queue.getFirstMissing(dataBlocks, encodedBlocks);
 					counter = 0;
 //					continue;
