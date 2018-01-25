@@ -475,14 +475,17 @@ public class MainActivity extends Activity {
         try{
         	dpk = new DatagramPacket(sendData, sendData.length, new InetSocketAddress(InetAddress.getByName(serverUrl), serverPort));
         	byte nums[] = new byte[2];
-        	if(missingNums.isEmpty())
+        	if(missingNums.isEmpty()){
+        		Log.i("wenjing", "no missing");
         		return;
+        	}
         	for(int i = 0; i < missingNums.size(); i++){
         		nums = UDPUtils.int2Bytes(missingNums.get(i), 2);
         		Log.i("wenjing", "missing nums " + missingNums.get(i));
-        		sendData = UDPUtils.byteMerger(nums, fileBuf[missingNums.get(i)]);
+        		sendData = UDPUtils.byteMerger(nums, fileBuf[missingNums.get(0)]);
         		dpk.setData(sendData);
         		dsk.send(dpk);
+        		missingNums.remove(0);
         	}
         }catch (Exception e) {
 			// TODO: handle exception
@@ -545,7 +548,7 @@ public class MainActivity extends Activity {
                 D[count][0] = nums[0];
 				D[count][1] = nums[1];
 				count ++;
-				Log.i("wenjing", "buf len " + sendData.length);
+				//Log.i("wenjing", "buf len " + sendData.length);
 				dpk.setData(sendData, 0, sendData.length);
                 dsk.send(dpk);
 				if (count == M) {//另外发送校验包

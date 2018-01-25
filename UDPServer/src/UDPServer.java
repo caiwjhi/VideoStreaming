@@ -106,8 +106,10 @@ public class UDPServer {
 						if(missingCount >= 100)
 							break;
 						readCount = UDPUtils.bytes2Int(buf, 0, 2);
+						if(UDPUtils.isEqualsByteArray(UDPUtils.exitData, buf, UDPUtils.exitData.length))
+							break;
 						output.receive(buf); //收到的包都要receive；
-						//System.out.println("receive count of "+ ( readCount ) +" !");  
+						System.out.println("receive count of "+ ( readCount ) +" !");  
 						if(readCount == requireNum){//缺失的已经补上，则继续接收其他包
 							System.out.println("==============================");
 							break;
