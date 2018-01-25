@@ -169,6 +169,7 @@ class MyThread extends Thread{
 				}
 			}
 		}
+		missing = 0;
 		System.out.println("length:"+length+", groups:"+tmpcounter);
 		System.out.println("filename:"+fileName+", md5:"+UDPUtils.getMD5(fileName));
 		System.out.println("Thread stop");
