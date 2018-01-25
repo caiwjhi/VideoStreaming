@@ -41,14 +41,8 @@ public class UDPServer {
 				if(UDPUtils.isEqualsByteArray(UDPUtils.exitData, buf, readSize)){  
 					System.out.println("client want to exit ...");  
 					// send exit flag   
-					if((requireNum = output.missing()) == -1){
-						System.out.println("server " + sendDpk.getAddress() + " " + sendDpk.getPort() + " " + receivePort);
-						sendDpk.setPort(receivePort);//如果不加这一句，端口就变了，不知道为什么？
-						sendDpk.setData(UDPUtils.exitData, 0, UDPUtils.exitData.length);  
-						dsk.send(sendDpk);  
-						System.out.println("bye server");
-						break;  
-					}
+					break;
+					
 				}
 				if(UDPUtils.isEqualsByteArray(UDPUtils.missingNum, buf, readSize)){
 				    clientPort = receiveDpk.getPort();
@@ -85,10 +79,10 @@ public class UDPServer {
 				System.out.println("client ip and port: " + receiveAddr + " " + receivePort);
 				//otherwise, get the file content  
 				readCount = UDPUtils.bytes2Int(buf, 0, 2);
-				System.out.println("receive count of "+ ( readCount ) +" !");  
+				System.out.println("receive count of "+ ( readCount ) +" !"); 
 				output.receive(buf); // save data to queue, in which buf[0~1] is the block number
 				
-				if ((requireNum = output.missing()) != -1) {
+				if((requireNum = output.missing()) != -1) {
 					//send ack
 					System.out.println("missing and resend " + requireNum);
 					if(readCount != requireNum){
@@ -97,7 +91,7 @@ public class UDPServer {
 					sendMissDpk.setPort(clientPort);
 					sendMissDpk.setData(missingData, 0, missingData.length);
 					System.out.println("server " + sendMissDpk.getAddress() + " " + sendMissDpk.getPort() + " " + UDPUtils.CLIENT_PORT);
-					//dsk.send(sendMissDpk);
+					dsk.send(sendMissDpk);
 					System.out.println("after send missing success ");
 					int missingCount = 1; // 计算要求重发后有多少收到的不是想要的缺失数据。
 					while(true){
@@ -106,8 +100,11 @@ public class UDPServer {
 						if(missingCount >= 100)
 							break;
 						readCount = UDPUtils.bytes2Int(buf, 0, 2);
-						if(UDPUtils.isEqualsByteArray(UDPUtils.exitData, buf, UDPUtils.exitData.length))
+						if(UDPUtils.isEqualsByteArray(UDPUtils.exitData, buf, UDPUtils.exitData.length)){
+							missingCount = 1;
+							System.out.println("get exit in missing");
 							break;
+						}
 						output.receive(buf); //收到的包都要receive；
 						System.out.println("receive count of "+ ( readCount ) +" !");  
 						if(readCount == requireNum){//缺失的已经补上，则继续接收其他包
@@ -123,14 +120,43 @@ public class UDPServer {
 						missingCount++;
 					}
 					}
-				}
-				
+				}				
 				//sendDpk.setData(UDPUtils.successData, 0, UDPUtils.successData.length);  
 				//dsk.send(sendDpk);  
-				//System.out.println("after send success ");  
+				//System.out.println("after send success ");
+				if(UDPUtils.isEqualsByteArray(UDPUtils.exitData, buf, UDPUtils.exitData.length)){
+					System.out.println("get exit");
+					break;
+				}
 				receiveDpk.setData(buf,0, buf.length); 
 				dsk.receive(receiveDpk);
 			}
+			System.out.println("server is finishing");
+			while((requireNum = output.missing()) != 0){
+				System.out.println("server " + sendDpk.getAddress() + " " + sendDpk.getPort() + " " + requireNum);
+				if(readCount != requireNum){
+					nums = UDPUtils.int2Bytes(requireNum, 2);
+					missingData = UDPUtils.byteMerger(UDPUtils.missingNum, nums);
+					sendMissDpk.setPort(clientPort);
+					sendMissDpk.setData(missingData, 0, missingData.length);
+					//System.out.println("server " + sendMissDpk.getAddress() + " " + sendMissDpk.getPort() + " " + UDPUtils.CLIENT_PORT);
+					if(requireNum > 0)
+						dsk.send(sendMissDpk);
+					sendDpk.setPort(receivePort);
+					sendDpk.setData(UDPUtils.missingNum, 0, UDPUtils.missingNum.length);
+					dsk.send(sendDpk);
+					receiveDpk.setData(buf,0, buf.length);  
+					dsk.receive(receiveDpk);
+					readCount = UDPUtils.bytes2Int(buf, 0, 2);
+					if(!UDPUtils.isEqualsByteArray(UDPUtils.exitData, buf, UDPUtils.exitData.length))
+						output.receive(buf); //收到的包都要receive；
+					System.out.println("receive count of "+ ( readCount ) +" !");  
+				}
+			}
+			System.out.println("server end....");
+			sendDpk.setData(UDPUtils.exitData, 0, UDPUtils.exitData.length);
+			dsk.send(sendDpk);
+			
 		} catch (Exception e) {  
 			e.printStackTrace();  
 		} finally{  

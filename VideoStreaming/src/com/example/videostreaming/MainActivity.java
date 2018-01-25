@@ -481,7 +481,7 @@ public class MainActivity extends Activity {
         	}
         	for(int i = 0; i < missingNums.size(); i++){
         		nums = UDPUtils.int2Bytes(missingNums.get(i), 2);
-        		Log.i("wenjing", "missing nums " + missingNums.get(i));
+        		Log.i("wenjing", "missing nums ----------------- " + missingNums.get(i));
         		sendData = UDPUtils.byteMerger(nums, fileBuf[missingNums.get(0)]);
         		dpk.setData(sendData);
         		dsk.send(dpk);
@@ -587,17 +587,20 @@ public class MainActivity extends Activity {
             }
             //Toast.makeText(MainActivity.this, "finish send this file", Toast.LENGTH_SHORT).show();
             Log.i("wenjing", "finish the send file..");
+           // resendMissData(dsk);
          // send exit wait server response
             while(true){
                 System.out.println("client send exit message ....");
                 dpk.setData(UDPUtils.exitData,0,UDPUtils.exitData.length);
                 dsk.send(dpk);
-
+                resendMissData(dsk);
+                resendMissData(dsk);
                 receiveDpk.setData(receiveBuf,0,receiveBuf.length);
                 dsk.receive(receiveDpk);
                 // byte[] receiveData = dpk.getData();
                 if(!UDPUtils.isEqualsByteArray(UDPUtils.exitData, receiveBuf, receiveDpk.getLength())){
                     Log.i("wenjing", "client Resend exit message ....");
+                    resendMissData(dsk);
                     //dsk.send(dpk);
                 }else
                     break;
