@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Date;
 
 public class TestEncoder extends Thread{
 	public int bufSize = UDPUtils.BUFFER_SIZE;
@@ -19,7 +20,7 @@ public class TestEncoder extends Thread{
 		System.out.println("length:"+f.length()+", groups:"+(f.length()/(UDPUtils.BUFFER_SIZE*5)+1));
 		output = new FileOutput("output/");
 		output.open(fileName, f.length());
-		blockNum = 0;
+		blockNum = 1;
 		InputStream is;
 		int tmpcounter = 0;
 		try {
@@ -38,10 +39,9 @@ public class TestEncoder extends Thread{
 		int count = 0;
 		encoder = new FEC(M, N);
 		System.out.println("begin");
+//		long startTime = (new Date()).getTime();
 		try {
 			while ((readSize = is.read(buf, 0, bufSize)) != -1) {
-//				if (readSize != buf.length)
-//					System.out.println("read "+readSize+" bytes");
 				System.arraycopy(buf, 0, D[count], offset, readSize);
 				System.arraycopy(UDPUtils.int2Bytes(blockNum, offset), 0, D[count], 0, offset);
 				blockNum ++;
@@ -51,8 +51,8 @@ public class TestEncoder extends Thread{
 					System.arraycopy(UDPUtils.int2Bytes(blockNum, offset), 0, C[0], 0, offset);
 					blockNum ++;
 					for (int i = 0; i < M; i++) {
-//						if (i == 3)
-//							continue;
+						if (i == 2)
+							continue;
 						output.receive(D[i]);
 					}
 					for (int i = 0; i < N; i++) {
@@ -60,13 +60,16 @@ public class TestEncoder extends Thread{
 					}
 					count = 0;
 					tmpcounter++;
+					if (tmpcounter % 5 == 0)
+						sleep(5);
 //					System.out.println("send "+tmpcounter+" groups");
-					sleep(100);
+//					sleep(100);
 				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-		} catch (InterruptedException e) {
+		} 
+		catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 		if (count > 0) {
@@ -79,12 +82,14 @@ public class TestEncoder extends Thread{
 			System.arraycopy(UDPUtils.int2Bytes(blockNum, offset), 0, C[0], 0, offset);
 			blockNum ++;
 			for (int i = 0; i < M; i++) {
+				if (i == 2)
+					continue;
 				output.receive(D[i]);
 			}
 			for (int i = 0; i < N; i++) {
 				output.receive(C[i]);
 			}
-			tmpcounter++;
+//			tmpcounter++;
 //			System.out.println("send "+tmpcounter+" groups");
 		}
 		try {
@@ -93,7 +98,8 @@ public class TestEncoder extends Thread{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+//		long now = (new Date()).getTime();
+//		System.out.println("total time:"+(now-startTime));
 	}
 	
 	public static void main(String[] args) throws IOException {

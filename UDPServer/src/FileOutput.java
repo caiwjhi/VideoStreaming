@@ -65,6 +65,7 @@ public class FileOutput {
 
 class MyThread extends Thread{
 	private int waitTime;
+	private int sleepTime = 1;
 	private int counter;
 	private long fileLength;
 	private long length;
@@ -151,22 +152,23 @@ class MyThread extends Thread{
 		int[] ready = new int[dataBlocks+encodedBlocks];
 		int num = 0;
 		while (!stop) {
-			num = queue.ready(dataBlocks, encodedBlocks);
+			num = queue.ready(dataBlocks, encodedBlocks, 0);
 			if (num >= dataBlocks) {
 				write(ready);
 				counter = 0;
 			} else {
 				if (num > 0)
 					counter++;
-				if (counter >= 10) {
-					System.out.println("receive fail");
-//					write(ready);
+				if (counter > 20) {
 					missing = queue.getFirstMissing(dataBlocks, encodedBlocks);
 					counter = 0;
-					continue;
+//					continue;
+					System.out.println("receive fail, missing:"+missing);
+					queue.printQueue(30);
+					break;
 				}
 				try {
-					sleep(waitTime);
+					sleep(sleepTime);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
