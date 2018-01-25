@@ -143,13 +143,14 @@ public class UDPServer {
 					sendMissDpk.setPort(clientPort);
 					sendMissDpk.setData(missingData, 0, missingData.length);
 					//System.out.println("server " + sendMissDpk.getAddress() + " " + sendMissDpk.getPort() + " " + UDPUtils.CLIENT_PORT);
-					if(requireNum > 0)
-						dsk.send(sendMissDpk);
+					dsk.send(sendMissDpk);
 					sendDpk.setPort(receivePort);
 					sendDpk.setData(UDPUtils.missingNum, 0, UDPUtils.missingNum.length);
 					dsk.send(sendDpk);
 					receiveDpk.setData(buf,0, buf.length);  
+					System.out.println("before receive in missing");
 					dsk.receive(receiveDpk);
+					System.out.println("after receive in missing");
 					readCount = UDPUtils.bytes2Int(buf, 0, 2);
 					if(!UDPUtils.isEqualsByteArray(UDPUtils.exitData, buf, UDPUtils.exitData.length))
 						output.receive(buf); //收到的包都要receive；
