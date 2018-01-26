@@ -150,7 +150,7 @@ class MyThread extends Thread{
 		queue.output(data, encoded, ready, dataBlocks, encodedBlocks);
 		encoder.decode(data, encoded, ready, UDPUtils.BUFFER_SIZE);
 		for (int i = 0; i < data.length; i++) {
-			System.out.print(data[0] + ", " + data[1] + ", ");
+			System.out.print(data[i][0] + ", " + data[i][1] + ", ");
 		}
 		System.out.println();
 		long len = dataBlocks * UDPUtils.BUFFER_SIZE;
