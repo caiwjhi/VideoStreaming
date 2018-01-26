@@ -146,8 +146,13 @@ class MyThread extends Thread{
 	}
 	
 	public void write(int[] ready) {
+		System.out.print("[data "+queue.expected+"]");
 		queue.output(data, encoded, ready, dataBlocks, encodedBlocks);
 		encoder.decode(data, encoded, ready, UDPUtils.BUFFER_SIZE);
+		for (int i = 0; i < data.length; i++) {
+			System.out.print(data[i][0] + ", " + data[i][1] + ", ");
+		}
+		System.out.println();
 		long len = dataBlocks * UDPUtils.BUFFER_SIZE;
 		if (fileLength-length < dataBlocks * UDPUtils.BUFFER_SIZE) {
 			len = fileLength-length;
