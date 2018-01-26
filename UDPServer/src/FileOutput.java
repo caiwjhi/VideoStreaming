@@ -81,7 +81,7 @@ public class FileOutput {
 
 class MyThread extends Thread{
 	private int maxBlockNum;
-	private int sleepTime = 1;
+	private int sleepTime = 20;
 	private int counter;
 	private long fileLength;
 	private long length;
