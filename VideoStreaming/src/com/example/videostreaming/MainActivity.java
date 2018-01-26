@@ -486,6 +486,7 @@ public class MainActivity extends Activity {
 				sendData = UDPUtils.byteMerger(nums, fileBuf[missingNums.get(0)]);
 				dpk.setData(sendData);
 				dsk.send(dpk);
+				Log.i("wenjing", "after resend missing");
 				missingNums.remove(0);
 			}
 		}catch (Exception e) {
@@ -616,12 +617,10 @@ public class MainActivity extends Activity {
 			Log.i("wenjing", "finish the send file..");
 		   // resendMissData(dsk);
 		 // send exit wait server response
+			System.out.println("client send exit message ....");
+			dpk.setData(UDPUtils.exitData,0,UDPUtils.exitData.length);
+			dsk.send(dpk);
 			while(true){
-				System.out.println("client send exit message ....");
-				dpk.setData(UDPUtils.exitData,0,UDPUtils.exitData.length);
-				dsk.send(dpk);
-				resendMissData(dsk);
-				resendMissData(dsk);
 				receiveDpk.setData(receiveBuf,0,receiveBuf.length);
 				dsk.receive(receiveDpk);
 				// byte[] receiveData = dpk.getData();
