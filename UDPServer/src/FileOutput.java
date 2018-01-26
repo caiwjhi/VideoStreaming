@@ -50,6 +50,8 @@ public class FileOutput {
 	}
 	
 	public void receive(byte[] buf) {
+		if (UDPUtils.bytes2Int(buf, 0, 2) == receiveData.missing)
+			receiveData.missing = -1;
 		queue.insert(buf);
 	}
 	

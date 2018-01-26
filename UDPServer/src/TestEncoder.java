@@ -51,9 +51,10 @@ public class TestEncoder extends Thread{
 						System.arraycopy(UDPUtils.int2Bytes(blockNum, offset), 0, C[i], 0, offset);
 						blockNum ++;
 					}
-					for (int i = 0; i < M; i++) {
-						if (i == 2 || i == 3)
-							continue;
+//					for (int i = 0; i < M; i++) {
+//						if (i == 2 || i == 3)
+//							continue;
+					for (int i = M-1; i >= 0; i--) {
 						output.receive(D[i]);
 					}
 					for (int i = 0; i < N; i++) {
