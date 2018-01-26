@@ -6,7 +6,8 @@ import com.sun.glass.ui.TouchInputSupport;
 
 public class UDPServer {  
 	  
-    private static final String SAVE_FILE_DIR = "D:/wenjing/teachingClass/saveFiles/";  
+//    private static final String SAVE_FILE_DIR = "D:/wenjing/teachingClass/saveFiles/";  
+	private static final String SAVE_FILE_DIR = "output/";
 	private static String fileName = "default.mkv";  
 	private static FileOutput output;
 	private static int fileSize = 0;
