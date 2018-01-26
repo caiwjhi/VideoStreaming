@@ -59,7 +59,7 @@ public class MainActivity extends Activity {
 	private TextView textShow;
 	private String fileName;
 	private List<Integer> missingNums = new ArrayList<Integer>();
-	private byte[][] fileBuf = new byte[2049][UDPUtils.BUFFER_SIZE];//文件内容缓存，用来重传
+	private byte[][] fileBuf = new byte[2049][UDPUtils.BUFFER_SIZE+2];//已传内容缓存，用来重传，该缓存部分包括编号
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -488,7 +488,8 @@ public class MainActivity extends Activity {
 				if(missingNums.get(0) == 0)
 					return false;
 				nums = UDPUtils.int2Bytes(missingNums.get(0), 2);
-				sendData = UDPUtils.byteMerger(nums, fileBuf[missingNums.get(0)]);
+				//sendData = UDPUtils.byteMerger(nums, fileBuf[missingNums.get(0)]);
+				sendData = fileBuf[missingNums.get(0)];
 				dpk.setData(sendData);
 				dsk.send(dpk);
 				Log.i("wenjing", "after resend missing");
@@ -509,8 +510,8 @@ public class MainActivity extends Activity {
 		Log.i("wenjing", "in send file....");
 		//RandomAccessFile accessFile = null;
 		FEC encoder;
-		int M = 5;
-		int N = 1;
+		int M = UDPUtils.DATA_BLOCK;
+		int N = UDPUtils.ENCODED_BLOCK;
 		byte D[][] = new byte[M][UDPUtils.BUFFER_SIZE+2];
 		byte C[][] = new byte[N][UDPUtils.BUFFER_SIZE+2];//2是放编号的位置大小
 		int count = 0;
@@ -551,9 +552,10 @@ public class MainActivity extends Activity {
 				resendMissData(dsk);
 				System.arraycopy(buf, 0, D[count], 2, readSize);
 				sendCount++;
-				fileBuf[sendCount] = buf;
+				//fileBuf[sendCount] = buf;
 				nums = UDPUtils.int2Bytes(sendCount, 2);
 				byte[] sendData = UDPUtils.byteMerger(nums, buf);
+				fileBuf[sendCount] = sendData;
 				D[count][0] = nums[0];
 				D[count][1] = nums[1];
 				count ++;
@@ -572,6 +574,10 @@ public class MainActivity extends Activity {
 						dsk.send(dpk);
 					}
 					count = 0;
+					String s = new String("sendCount " + sendCount + " ");
+					for(int l = 0; l < M; l++)
+						s += D[l][2] + " " + D[l][3] + " ";
+					Log.d("11", s);
 				}
 				
 				// wait server response
@@ -603,9 +609,10 @@ public class MainActivity extends Activity {
 					Arrays.fill(buf, (byte)0);
 					Arrays.fill(D[i], (byte)0);
 					sendCount++;
-					fileBuf[sendCount] = buf;
+					//fileBuf[sendCount] = buf;
 					nums = UDPUtils.int2Bytes(sendCount, 2);
 					byte[] sendData = UDPUtils.byteMerger(nums, buf);
+					fileBuf[sendCount] = sendData;
 					D[i][0] = nums[0];
 					D[i][1] = nums[1];
 					dpk.setData(sendData, 0, sendData.length);

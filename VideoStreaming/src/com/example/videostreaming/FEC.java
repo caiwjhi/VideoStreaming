@@ -1,3 +1,4 @@
+package com.example.videostreaming;
 import java.util.Arrays;
 
 public class FEC {

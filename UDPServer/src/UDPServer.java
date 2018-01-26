@@ -76,7 +76,7 @@ public class UDPServer {
 				System.out.println("receive file content..");
 				receiveAddr = receiveDpk.getAddress();//返回接收或发送此数据报文的机器的 IP 地址。 
 				receivePort = receiveDpk.getPort();//返回接收或发送该数据报文的远程主机端口号。
-				System.out.println("client ip and port: " + receiveAddr + " " + receivePort);
+//				System.out.println("client ip and port: " + receiveAddr + " " + receivePort);
 				//otherwise, get the file content  
 				readCount = UDPUtils.bytes2Int(buf, 0, 2);
 				System.out.println("receive count of "+ ( readCount ) +" !"); 
