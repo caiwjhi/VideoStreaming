@@ -398,6 +398,10 @@ public class MainActivity extends Activity {
 						missingNums.add(UDPUtils.bytes2Int(nums, 0, 2));
 						// send exit flag     
 					}
+					if(UDPUtils.isEqualsByteArray(UDPUtils.exitData, receiveData, UDPUtils.exitData.length)){
+						Log.i("wenjing", "server exit..");
+						missingNums.add(0);
+					}
 					receiveDpk.setData(receiveData,0, receiveData.length); 
 					dsk.receive(receiveDpk);
 				}
@@ -468,29 +472,33 @@ public class MainActivity extends Activity {
 		}
 	}
 	
-	public void resendMissData(DatagramSocket dsk){
-		Log.i("wenjing", "in resend missing..");
+	public boolean resendMissData(DatagramSocket dsk){
+		//Log.i("wenjing", "in resend missing..");
 		DatagramPacket dpk = null;
 		byte[] sendData = new byte[UDPUtils.BUFFER_SIZE+2];
 		try{
 			dpk = new DatagramPacket(sendData, sendData.length, new InetSocketAddress(InetAddress.getByName(serverUrl), serverPort));
 			byte nums[] = new byte[2];
 			if(missingNums.isEmpty()){
-				Log.i("wenjing", "no missing");
-				return;
+				//Log.i("wenjing", "no missing");
+				return true;
 			}
 			while(missingNums.size() > 0){
-				nums = UDPUtils.int2Bytes(missingNums.get(0), 2);
 				Log.i("wenjing", "missing nums ----------------- " + missingNums.get(0));
+				if(missingNums.get(0) == 0)
+					return false;
+				nums = UDPUtils.int2Bytes(missingNums.get(0), 2);
 				sendData = UDPUtils.byteMerger(nums, fileBuf[missingNums.get(0)]);
 				dpk.setData(sendData);
 				dsk.send(dpk);
 				Log.i("wenjing", "after resend missing");
 				missingNums.remove(0);
 			}
+			return true;
 		}catch (Exception e) {
 			// TODO: handle exception
 			Log.i("wenjing", "resend .. " + e);
+			return true;
 		}
 	}
 	public void UdpSendFile(){
@@ -622,18 +630,10 @@ public class MainActivity extends Activity {
 			dpk.setData(UDPUtils.exitData,0,UDPUtils.exitData.length);
 			dsk.send(dpk);
 			while(true){
-				resendMissData(dsk);
-				resendMissData(dsk);
-				resendMissData(dsk);
-				receiveDpk.setData(receiveBuf,0,receiveBuf.length);
-				dsk.receive(receiveDpk);
-				// byte[] receiveData = dpk.getData();
-				if(!UDPUtils.isEqualsByteArray(UDPUtils.exitData, receiveBuf, receiveDpk.getLength())){
-					Log.i("wenjing", "client Resend exit message ....");
-					resendMissData(dsk);
-					//dsk.send(dpk);
-				}else
+				if(!resendMissData(dsk))
 					break;
+				// byte[] receiveData = dpk.getData();
+				
 			}
 			}
 			Log.i("wenjing", "where ???");

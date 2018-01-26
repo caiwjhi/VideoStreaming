@@ -97,8 +97,10 @@ public class UDPServer {
 					while(true){
 						receiveDpk.setData(buf,0, buf.length);  
 						dsk.receive(receiveDpk);
-						if(missingCount >= 100)
+						if(missingCount >= 100){
+							output.receive(buf);
 							break;
+						}
 						readCount = UDPUtils.bytes2Int(buf, 0, 2);
 						if(UDPUtils.isEqualsByteArray(UDPUtils.exitData, buf, UDPUtils.exitData.length)){
 							missingCount = 1;
@@ -146,9 +148,9 @@ public class UDPServer {
 					sendMissDpk.setData(missingData, 0, missingData.length);
 					//System.out.println("server " + sendMissDpk.getAddress() + " " + sendMissDpk.getPort() + " " + UDPUtils.CLIENT_PORT);
 					dsk.send(sendMissDpk);
-					sendDpk.setPort(receivePort);
+					/*sendDpk.setPort(receivePort);
 					sendDpk.setData(UDPUtils.missingNum, 0, UDPUtils.missingNum.length);
-					dsk.send(sendDpk);
+					dsk.send(sendDpk);*/
 					receiveDpk.setData(buf,0, buf.length);  
 					System.out.println("before receive in missing");
 					dsk.receive(receiveDpk);
@@ -160,8 +162,9 @@ public class UDPServer {
 				}
 			}
 			System.out.println("server end....");
-			sendDpk.setData(UDPUtils.exitData, 0, UDPUtils.exitData.length);
-			dsk.send(sendDpk);
+			sendMissDpk.setPort(clientPort);
+			sendMissDpk.setData(UDPUtils.exitData, 0, UDPUtils.exitData.length);
+			dsk.send(sendMissDpk);
 			
 		} catch (Exception e) {  
 			e.printStackTrace();  
