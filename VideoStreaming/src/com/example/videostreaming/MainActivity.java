@@ -392,9 +392,8 @@ public class MainActivity extends Activity {
 				dsk.receive(receiveDpk);  
 				int readSize = 0; 
 				while((readSize = receiveDpk.getLength()) != 0){  
-					Log.i("wenjing", "receive missing " + receiveData);
 					if(UDPUtils.isEqualsByteArray(UDPUtils.missingNum, receiveData, UDPUtils.missingNum.length)){  
-						Log.i("wenjing", "get missing num from server ...");  
+						Log.i("wenjing", "get missing num from server ..." + UDPUtils.bytes2Int(nums, 0, 2));  
 						System.arraycopy(receiveData, UDPUtils.missingNum.length, nums, 0, 2);
 						missingNums.add(UDPUtils.bytes2Int(nums, 0, 2));
 						// send exit flag     
@@ -481,8 +480,8 @@ public class MainActivity extends Activity {
 				return;
 			}
 			for(int i = 0; i < missingNums.size(); i++){
-				nums = UDPUtils.int2Bytes(missingNums.get(i), 2);
-				Log.i("wenjing", "missing nums ----------------- " + missingNums.get(i));
+				nums = UDPUtils.int2Bytes(missingNums.get(0), 2);
+				Log.i("wenjing", "missing nums ----------------- " + missingNums.get(0));
 				sendData = UDPUtils.byteMerger(nums, fileBuf[missingNums.get(0)]);
 				dpk.setData(sendData);
 				dsk.send(dpk);
@@ -649,7 +648,7 @@ public class MainActivity extends Activity {
 				Log.e("wenjing", "exception  22" + e);
 			}
 		}
-
+		Log.i("wenjing", UDPUtils.getMD5(filePath));
 		long endTime = System.currentTimeMillis();
 		System.out.println("time:"+(endTime - startTime));
 		Log.i("wenjing", "time:"+(endTime - startTime));

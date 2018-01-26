@@ -134,10 +134,12 @@ public class UDPServer {
 			System.out.println("server is finishing");
 			while((requireNum = output.missing()) != 0){
 				if (requireNum == -1) {
+					System.out.println(-1);
 					continue;
 				}
 				System.out.println("server " + sendDpk.getAddress() + " " + sendDpk.getPort() + " " + requireNum);
 				if(readCount != requireNum){
+					System.out.println("send missing " + requireNum);
 					nums = UDPUtils.int2Bytes(requireNum, 2);
 					missingData = UDPUtils.byteMerger(UDPUtils.missingNum, nums);
 					sendMissDpk.setPort(clientPort);

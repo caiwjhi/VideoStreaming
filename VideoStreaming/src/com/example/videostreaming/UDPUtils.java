@@ -1,4 +1,13 @@
 package com.example.videostreaming;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.security.MessageDigest;
+
 /** 
  * UDP transfer Utils   
  * 
@@ -106,4 +115,29 @@ public class UDPUtils {
         System.arraycopy(byte_2, 0, byte_3, byte_1.length, byte_2.length);  
         return byte_3;  
     }  
+    public static String getMD5(String fileName) {
+		File f = null;
+		FileInputStream fis = null;
+		String value = null;
+		try {
+			f = new File(fileName);
+			fis= new FileInputStream(f);
+			MappedByteBuffer byteBuffer = fis.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, f.length());  
+			MessageDigest md5 = MessageDigest.getInstance("MD5");  
+			md5.update(byteBuffer);  
+			BigInteger bi = new BigInteger(1, md5.digest());  
+			value = bi.toString(16);  
+		} catch (Exception e) {  
+			e.printStackTrace();  
+		} finally {  
+			if(fis != null) {  
+				try {
+					fis.close();  
+				} catch (IOException e) {  
+					e.printStackTrace();  
+				}  
+			}  
+		}
+		return value;
+	}
 }  
