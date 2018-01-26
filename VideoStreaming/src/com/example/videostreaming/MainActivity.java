@@ -479,7 +479,7 @@ public class MainActivity extends Activity {
 				Log.i("wenjing", "no missing");
 				return;
 			}
-			for(int i = 0; i < missingNums.size(); i++){
+			while(missingNums.size() > 0){
 				nums = UDPUtils.int2Bytes(missingNums.get(0), 2);
 				Log.i("wenjing", "missing nums ----------------- " + missingNums.get(0));
 				sendData = UDPUtils.byteMerger(nums, fileBuf[missingNums.get(0)]);
