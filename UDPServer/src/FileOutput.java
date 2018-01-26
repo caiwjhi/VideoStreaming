@@ -81,7 +81,7 @@ public class FileOutput {
 
 class MyThread extends Thread{
 	private int maxBlockNum;
-	private int sleepTime = 20;
+	private int sleepTime = 5;
 	private int counter;
 	private long fileLength;
 	private long length;
@@ -181,7 +181,7 @@ class MyThread extends Thread{
 				if (counter > 10) {
 					missing = queue.getFirstMissing(dataBlocks, encodedBlocks);
 					counter = 0;
-					System.out.println("receive fail, missing:"+missing);
+					//System.out.println("receive fail, missing:"+missing);
 //					queue.printQueue(30);
 //					break;
 				}

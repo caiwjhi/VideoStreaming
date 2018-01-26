@@ -11,6 +11,9 @@ public class UDPServer {
 	private static FileOutput output;
 	private static int fileSize = 0;
 	private static int clientPort = UDPUtils.CLIENT_PORT;
+	private static int missCount = 0;
+	private static int resendCount = 0;//resend 请求数
+	private static int receiveCount = 0;
 	
 	public static void main(String[] args) {  
 		System.out.println("Streaming server..."); 
@@ -47,7 +50,7 @@ public class UDPServer {
 				if(UDPUtils.isEqualsByteArray(UDPUtils.missingNum, buf, readSize)){
 				    clientPort = receiveDpk.getPort();
 					System.out.println("get the buf from the client missing !!!!!!!");
-					System.out.println("client " + receiveDpk.getAddress() + " " + receiveDpk.getPort());
+					//System.out.println("client " + receiveDpk.getAddress() + " " + receiveDpk.getPort());
 					receiveDpk.setData(buf,0, buf.length);  
 					dsk.receive(receiveDpk); 
 					continue;
@@ -55,25 +58,25 @@ public class UDPServer {
 				if(UDPUtils.hasMark(UDPUtils.fileInfo, buf)){
 					//get the file name
 					receivePort = receiveDpk.getPort();
-					System.out.println("get buf: " + new String(buf));
+					//System.out.println("get buf: " + new String(buf));
 					fileName = UDPUtils.getFileName(buf, UDPUtils.fileInfo.length);
 					System.out.println("get file name : " + fileName);
 					fileSize = UDPUtils.getFileSize(buf);
-					System.out.println("file size: " + fileSize);
-					System.out.println("nums " + UDPUtils.getFileNums(buf));
+					//System.out.println("file size: " + fileSize);
+					//System.out.println("nums " + UDPUtils.getFileNums(buf));
 					output.open(fileName, fileSize); // open thread to save data
 					System.out.println("client ip and port: " + receiveAddr + " " + receivePort);
 					sendDpk.setPort(receivePort);
 					sendDpk.setData(UDPUtils.successData, 0, UDPUtils.successData.length);
 					dsk.send(sendDpk);
-					System.out.println("after send success ");
+					//System.out.println("after send success ");
 					readCount = UDPUtils.bytes2Int(buf, 0, 2);
 					System.out.println("receive count of "+ ( readCount ) +" !");  
 					receiveDpk.setData(buf,0, buf.length);  
 					dsk.receive(receiveDpk); 
 					continue;
 				}
-				System.out.println("receive file content..");
+				//System.out.println("receive file content..");
 				receiveAddr = receiveDpk.getAddress();//返回接收或发送此数据报文的机器的 IP 地址。 
 				receivePort = receiveDpk.getPort();//返回接收或发送该数据报文的远程主机端口号。
 //				System.out.println("client ip and port: " + receiveAddr + " " + receivePort);
@@ -81,22 +84,25 @@ public class UDPServer {
 				readCount = UDPUtils.bytes2Int(buf, 0, 2);
 				System.out.println("receive count of "+ ( readCount ) +" !"); 
 				output.receive(buf); // save data to queue, in which buf[0~1] is the block number
-				
+				receiveCount ++;//每收一个包，加一，可能包括重传的包
 				if((requireNum = output.missing()) != -1) {
 					//send ack
 					System.out.println("missing and resend " + requireNum);
 					if(readCount != requireNum){
+					missCount ++;
 					nums = UDPUtils.int2Bytes(requireNum, 2);
 					missingData = UDPUtils.byteMerger(UDPUtils.missingNum, nums);
 					sendMissDpk.setPort(clientPort);
 					sendMissDpk.setData(missingData, 0, missingData.length);
-					System.out.println("server " + sendMissDpk.getAddress() + " " + sendMissDpk.getPort() + " " + UDPUtils.CLIENT_PORT);
+					//System.out.println("server " + sendMissDpk.getAddress() + " " + sendMissDpk.getPort() + " " + UDPUtils.CLIENT_PORT);
 					dsk.send(sendMissDpk);
-					System.out.println("after send missing success ");
+					resendCount ++;//要求重传次数
+					//System.out.println("after send missing success ");
 					int missingCount = 1; // 计算要求重发后有多少收到的不是想要的缺失数据。
 					while(true){
 						receiveDpk.setData(buf,0, buf.length);  
 						dsk.receive(receiveDpk);
+						receiveCount ++;
 						if(missingCount >= 100){
 							output.receive(buf);
 							break;
@@ -116,6 +122,7 @@ public class UDPServer {
 							if(missingCount % 50 == 0){
 								System.out.println("!!!! resend  again !!!!");
 								dsk.send(sendMissDpk);
+								resendCount ++;
 								//break;
 							}
 						}	
@@ -135,37 +142,47 @@ public class UDPServer {
 			}
 			System.out.println("server is finishing");
 			while((requireNum = output.missing()) != 0){
-				if (requireNum == -1) {
+				//if (requireNum == -1) {
 					//System.out.println(-1);
-					continue;
-				}
+					//continue;
+				//}
 				System.out.println("server " + sendDpk.getAddress() + " " + sendDpk.getPort() + " " + requireNum);
 				if(readCount != requireNum){
+					receiveCount ++;
 					System.out.println("send missing " + requireNum);
 					nums = UDPUtils.int2Bytes(requireNum, 2);
 					missingData = UDPUtils.byteMerger(UDPUtils.missingNum, nums);
 					sendMissDpk.setPort(clientPort);
 					sendMissDpk.setData(missingData, 0, missingData.length);
 					//System.out.println("server " + sendMissDpk.getAddress() + " " + sendMissDpk.getPort() + " " + UDPUtils.CLIENT_PORT);
-					dsk.send(sendMissDpk);
+					if(requireNum != -1){
+						dsk.send(sendMissDpk);
+					resendCount ++;}
 					/*sendDpk.setPort(receivePort);
 					sendDpk.setData(UDPUtils.missingNum, 0, UDPUtils.missingNum.length);
 					dsk.send(sendDpk);*/
+					
 					receiveDpk.setData(buf,0, buf.length);  
-					System.out.println("before receive in missing");
+					//System.out.println("before receive in missing");
+					try{dsk.setSoTimeout(100);
 					dsk.receive(receiveDpk);
-					System.out.println("after receive in missing");
+					
+					//System.out.println("after receive in missing");
 					readCount = UDPUtils.bytes2Int(buf, 0, 2);
 					if(!UDPUtils.isEqualsByteArray(UDPUtils.exitData, buf, UDPUtils.exitData.length))
 						output.receive(buf); //收到的包都要receive；
-					System.out.println("receive count of "+ ( readCount ) +" !");  
+					System.out.println("receive count of "+ ( readCount ) +" !"); 
+					}catch (Exception e) {
+						// TODO: handle exception
+						
+					}
 				}
 			}
 			System.out.println("server end....");
 			sendMissDpk.setPort(clientPort);
 			sendMissDpk.setData(UDPUtils.exitData, 0, UDPUtils.exitData.length);
 			dsk.send(sendMissDpk);
-			
+			System.out.println("resend Count " + resendCount + " receive Count " + receiveCount);
 		} catch (Exception e) {  
 			e.printStackTrace();  
 		} finally{  
