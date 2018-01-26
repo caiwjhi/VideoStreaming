@@ -134,7 +134,7 @@ public class UDPServer {
 			System.out.println("server is finishing");
 			while((requireNum = output.missing()) != 0){
 				if (requireNum == -1) {
-					System.out.println(-1);
+					//System.out.println(-1);
 					continue;
 				}
 				System.out.println("server " + sendDpk.getAddress() + " " + sendDpk.getPort() + " " + requireNum);

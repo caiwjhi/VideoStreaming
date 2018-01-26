@@ -59,7 +59,7 @@ public class MainActivity extends Activity {
 	private TextView textShow;
 	private String fileName;
 	private List<Integer> missingNums = new ArrayList<Integer>();
-	private byte[][] fileBuf = new byte[1025][UDPUtils.BUFFER_SIZE];//文件内容缓存，用来重传
+	private byte[][] fileBuf = new byte[2049][UDPUtils.BUFFER_SIZE];//文件内容缓存，用来重传
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -559,6 +559,7 @@ public class MainActivity extends Activity {
 						nums = UDPUtils.int2Bytes(sendCount, 2);
 						C[i][0] = nums[0];
 						C[i][1] = nums[1];
+						fileBuf[sendCount] = C[i];
 						dpk.setData(C[i], 0, C[i].length);
 						dsk.send(dpk);
 					}
@@ -604,10 +605,11 @@ public class MainActivity extends Activity {
 				}
 				encoder.encode(D, C, UDPUtils.BUFFER_SIZE, 2);
 				for (int i = 0; i < N; i++) {
-					sendCount++;
+					sendCount++; 
 					nums = UDPUtils.int2Bytes(sendCount, 2);
 					C[i][0] = nums[0];
 					C[i][1] = nums[1];
+					fileBuf[sendCount] = C[i];
 					dpk.setData(C[i], 0, C[i].length);
 					dsk.send(dpk);
 				}
@@ -620,6 +622,9 @@ public class MainActivity extends Activity {
 			dpk.setData(UDPUtils.exitData,0,UDPUtils.exitData.length);
 			dsk.send(dpk);
 			while(true){
+				resendMissData(dsk);
+				resendMissData(dsk);
+				resendMissData(dsk);
 				receiveDpk.setData(receiveBuf,0,receiveBuf.length);
 				dsk.receive(receiveDpk);
 				// byte[] receiveData = dpk.getData();
