@@ -549,7 +549,7 @@ public class MainActivity extends Activity {
 			//Log.i("wenjing", "after new dsk");
 			receiveDpk = new DatagramPacket(receiveBuf, receiveBuf.length);
 			int sendCount = 0;
-			double random = 0.05;
+			//double random = 0.05;
 			//Log.i("wenjing", "after new receive dpk");
 			byte[] nums = new byte[2];//编号，identity number of each package
 			while((readSize = is.read(buf,0,buf.length)) != -1){//之前是accessFile
@@ -565,7 +565,7 @@ public class MainActivity extends Activity {
 				count ++;
 				//Log.i("wenjing", "buf len " + sendData.length);
 				dpk.setData(sendData, 0, sendData.length);
-				if(Math.random() >= random)
+				//if(Math.random() >= random)
 					dsk.send(dpk);
 				if (count == M) {//另外发送校验包
 					encoder.encode(D, C, UDPUtils.BUFFER_SIZE, 2);
@@ -576,7 +576,7 @@ public class MainActivity extends Activity {
 						C[i][1] = nums[1];
 						fileBuf[sendCount] = C[i];
 						dpk.setData(C[i], 0, C[i].length);
-						if(Math.random() >= random)
+						//if(Math.random() >= random)
 							dsk.send(dpk);
 						Log.i("wenjing", "send count of "+(sendCount)+"!");
 					}
