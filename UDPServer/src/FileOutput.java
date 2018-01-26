@@ -7,6 +7,7 @@ public class FileOutput {
 	private BufferedOutputStream bos;
 	private String fileName;
 	private long fileLength;
+	private int maxBlockNum;
 	private String fileDir;
 	private MyThread receiveData;
 	private Queue queue;
@@ -18,12 +19,21 @@ public class FileOutput {
 		encoder = new FEC(UDPUtils.DATA_BLOCK, UDPUtils.ENCODED_BLOCK);
 	}
 	
+	private void getBlockNum() {
+		int blocks = (int) (fileLength / UDPUtils.BUFFER_SIZE);
+		int groups = blocks / UDPUtils.DATA_BLOCK;
+		if (blocks % UDPUtils.DATA_BLOCK != 0)
+			groups += 1;
+		maxBlockNum = groups * (UDPUtils.DATA_BLOCK+UDPUtils.ENCODED_BLOCK);
+	}
+	
 	public boolean open(String name, long length) {
 		if (bos != null) {
 			close();
 			queue.clear();
 		}
 		fileLength = length;
+		getBlockNum();
 		fileName = name;
 		try {
 			bos = new BufferedOutputStream(new FileOutputStream(fileDir+fileName));
@@ -32,7 +42,7 @@ public class FileOutput {
 			e.printStackTrace();
 		}
 		if (bos != null) {
-			receiveData = new MyThread(10, queue, encoder, bos, fileLength, fileDir+fileName);
+			receiveData = new MyThread(10, queue, encoder, bos, fileLength, maxBlockNum, fileDir+fileName);
 			receiveData.start();
 			return true;
 		}
@@ -45,6 +55,10 @@ public class FileOutput {
 	
 	public int missing() {
 		int tmp = receiveData.missing;
+		if (tmp == 0 || tmp == -1)
+			return tmp;
+		if (tmp > maxBlockNum)
+			tmp = -1;
 		receiveData.missing = -1;
 		return tmp;
 	}
@@ -64,7 +78,7 @@ public class FileOutput {
 }
 
 class MyThread extends Thread{
-	private int waitTime;
+	private int maxBlockNum;
 	private int sleepTime = 1;
 	private int counter;
 	private long fileLength;
@@ -81,8 +95,8 @@ class MyThread extends Thread{
 	public String fileName;
 	public int missing;
 	
-	public MyThread(int time, Queue q, FEC e, BufferedOutputStream b, long len, String name){
-		waitTime = time;
+	public MyThread(int time, Queue q, FEC e, BufferedOutputStream b, long len, int maxNum, String name){
+		maxBlockNum = maxNum;
 		queue = q;
 		encoder = e;
 		dataBlocks = encoder.M;
@@ -153,6 +167,8 @@ class MyThread extends Thread{
 				write(ready);
 				counter = 0;
 			} else {
+				if (queue.expected > maxBlockNum)
+					break;
 				if (num > 0)
 					counter++;
 				if (counter > 10) {

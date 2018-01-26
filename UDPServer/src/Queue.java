@@ -6,7 +6,7 @@ public class Queue {
 	private int[] queue;
 	private byte[][] data;
 	public int pointer;
-	private int expected;
+	public int expected;
 	private int offset = 2;
 	
 	public Queue(int queueLength, int dataLength, int startNum) {
