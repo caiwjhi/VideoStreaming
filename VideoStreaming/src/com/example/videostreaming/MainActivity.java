@@ -18,6 +18,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -49,7 +50,7 @@ public class MainActivity extends Activity {
 	public static final int REC_REQUESTCODE = 1;
 	
 	/**服务器地址*/
-	private String serverUrl="166.111.139.163";//"192.168.1.100";
+	private String serverUrl= "166.111.139.163";//"192.168.1.100";
 	/**服务器端口*/
 	private int serverPort=8889;
 	/*是否选择文件*/
@@ -60,6 +61,7 @@ public class MainActivity extends Activity {
 	private String fileName;
 	private List<Integer> missingNums = new ArrayList<Integer>();
 	private byte[][] fileBuf = new byte[2049][UDPUtils.BUFFER_SIZE+2];//已传内容缓存，用来重传，该缓存部分包括编号
+	private int resendCount = 0;//客户端重传次数
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -448,21 +450,21 @@ public class MainActivity extends Activity {
 				socket.send(packet);
 				//Toast.makeText(MainActivity.this, "just after send commond", Toast.LENGTH_SHORT).show();
 				//接收服务器响应数据
-				Log.i("wenjing", "after send ..");
+				//Log.i("wenjing", "after send ..");
 				byte[] data2 = new byte[1024];
 				DatagramPacket packet2 = new DatagramPacket(data2, data2.length);
 				socket.receive(packet2);
-				Log.i("wenjing", "after receive...");
+				//Log.i("wenjing", "after receive...");
 				InetAddress receiveAddr = packet2.getAddress();//返回接收或发送此数据报文的机器的 IP 地址。 
 				int receivePort = packet2.getPort();//返回接收或发送该数据报文的远程主机端口号。
-				Log.i("wenjing", "receive add : " +receiveAddr +" " +receivePort);
+				//Log.i("wenjing", "receive add : " +receiveAddr +" " +receivePort);
 				//Toast.makeText(MainActivity.this, "after receive", Toast.LENGTH_SHORT).show();
 				String info = new String(data2, 0, packet2.getLength());
-				System.out.println("我是客户端，服务器说："+info);
+				//System.out.println("我是客户端，服务器说："+info);
 				//textShow.setText("发送命令后，服务器端回复：" + info);
 				Log.i("wenjing", "发送命令后，服务器端回复22：" + info);
 				socket.close();
-				Log.i("wenjing", "before udp send file in this thread");
+				//Log.i("wenjing", "before udp send file in this thread");
 				UdpSendFile();
 			} catch (UnknownHostException e) {
 				Log.e("e", "exception" + e);
@@ -484,7 +486,7 @@ public class MainActivity extends Activity {
 				return true;
 			}
 			while(missingNums.size() > 0){
-				Log.i("wenjing", "missing nums ----------------- " + missingNums.get(0));
+				//Log.i("wenjing", "missing nums ----------------- " + missingNums.get(0));
 				if(missingNums.get(0) == 0)
 					return false;
 				nums = UDPUtils.int2Bytes(missingNums.get(0), 2);
@@ -492,7 +494,8 @@ public class MainActivity extends Activity {
 				sendData = fileBuf[missingNums.get(0)];
 				dpk.setData(sendData);
 				dsk.send(dpk);
-				Log.i("wenjing", "after resend missing");
+				resendCount ++;
+				//Log.i("wenjing", "after resend missing");
 				missingNums.remove(0);
 			}
 			return true;
@@ -507,7 +510,7 @@ public class MainActivity extends Activity {
 		//textShow.setText("in send file fun..");
 		byte[] buf = new byte[UDPUtils.BUFFER_SIZE];
 		byte[] receiveBuf = new byte[1];
-		Log.i("wenjing", "in send file....");
+		//Log.i("wenjing", "in send file....");
 		//RandomAccessFile accessFile = null;
 		FEC encoder;
 		int M = UDPUtils.DATA_BLOCK;
@@ -539,14 +542,15 @@ public class MainActivity extends Activity {
 				);
 			}else{
 			file = new File(filePath);
-			Log.i("wenjing", "file exist?? " + file.exists());
+			//Log.i("wenjing", "file exist?? " + file.exists());
 			is = new FileInputStream(file);
 			dpk = new DatagramPacket(buf, buf.length,new InetSocketAddress(InetAddress.getByName(serverUrl), serverPort));
 			dsk = new DatagramSocket(UDPUtils.PORT-2);//client listening port
 			//Log.i("wenjing", "after new dsk");
 			receiveDpk = new DatagramPacket(receiveBuf, receiveBuf.length);
 			int sendCount = 0;
-			Log.i("wenjing", "after new receive dpk");
+			//double random = 0.05;
+			//Log.i("wenjing", "after new receive dpk");
 			byte[] nums = new byte[2];//编号，identity number of each package
 			while((readSize = is.read(buf,0,buf.length)) != -1){//之前是accessFile
 				resendMissData(dsk);
@@ -561,7 +565,8 @@ public class MainActivity extends Activity {
 				count ++;
 				//Log.i("wenjing", "buf len " + sendData.length);
 				dpk.setData(sendData, 0, sendData.length);
-				dsk.send(dpk);
+				//if(Math.random() >= random)
+					dsk.send(dpk);
 				if (count == M) {//另外发送校验包
 					encoder.encode(D, C, UDPUtils.BUFFER_SIZE, 2);
 					for (int i = 0; i < N; i++) {
@@ -571,13 +576,15 @@ public class MainActivity extends Activity {
 						C[i][1] = nums[1];
 						fileBuf[sendCount] = C[i];
 						dpk.setData(C[i], 0, C[i].length);
-						dsk.send(dpk);
+						//if(Math.random() >= random)
+							dsk.send(dpk);
+						Log.i("wenjing", "send count of "+(sendCount)+"!");
 					}
 					count = 0;
-					String s = new String("sendCount " + sendCount + " ");
-					for(int l = 0; l < M; l++)
-						s += D[l][2] + " " + D[l][3] + " ";
-					Log.d("11", s);
+					//String s = new String("sendCount " + sendCount + " ");
+					//for(int l = 0; l < M; l++)
+						//s += D[l][2] + " " + D[l][3] + " ";
+					//Log.d("11", s);
 				}
 				
 				// wait server response
@@ -617,6 +624,7 @@ public class MainActivity extends Activity {
 					D[i][1] = nums[1];
 					dpk.setData(sendData, 0, sendData.length);
 					dsk.send(dpk);
+					Log.i("wenjing", "send count of "+(sendCount)+"!");
 				}
 				encoder.encode(D, C, UDPUtils.BUFFER_SIZE, 2);
 				for (int i = 0; i < N; i++) {
@@ -627,13 +635,14 @@ public class MainActivity extends Activity {
 					fileBuf[sendCount] = C[i];
 					dpk.setData(C[i], 0, C[i].length);
 					dsk.send(dpk);
+					Log.i("wenjing", "send count of "+(sendCount)+"!");
 				}
 			}
 			//Toast.makeText(MainActivity.this, "finish send this file", Toast.LENGTH_SHORT).show();
 			Log.i("wenjing", "finish the send file..");
 		   // resendMissData(dsk);
 		 // send exit wait server response
-			System.out.println("client send exit message ....");
+		//	System.out.println("client send exit message ....");
 			dpk.setData(UDPUtils.exitData,0,UDPUtils.exitData.length);
 			dsk.send(dpk);
 			while(true){
@@ -660,10 +669,11 @@ public class MainActivity extends Activity {
 				Log.e("wenjing", "exception  22" + e);
 			}
 		}
-		Log.i("wenjing", UDPUtils.getMD5(filePath));
+		//Log.i("wenjing", UDPUtils.getMD5(filePath));
 		long endTime = System.currentTimeMillis();
 		System.out.println("time:"+(endTime - startTime));
 		Log.i("wenjing", "time:"+(endTime - startTime));
+		Log.i("wenjing", "resend Count" + resendCount);
 	}
 	/**
 	 * 获取指定文件大小(单位：字节)
